@@ -3,31 +3,45 @@
 import { query } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 
-export async function addRequest(formData: FormData) {
-  const content = formData.get('content') as string;
-  const category = formData.get('category') as string;
-  
-  if (content && category) {
-    try {
-      // Ensure table exists on first write if not already
-      await query(`
-        CREATE TABLE IF NOT EXISTS client_requests (
-          id SERIAL PRIMARY KEY,
-          content TEXT NOT NULL,
-          category TEXT,
-          status TEXT DEFAULT 'New',
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
+// Interface for type safety
+interface ClientRequest {
+  id: number;
+  content: string;
+  category: string;
+  status: string;
+  created_at: string;
+}
 
-      await query(
-        'INSERT INTO client_requests (content, category, status) VALUES ($1, $2, $3)',
-        [content, category, 'New']
-      );
-      revalidatePath('/');
-    } catch (e) {
-      console.error("Failed to add request:", e);
-      throw new Error('Failed to add request');
-    }
+export async function getRequests(): Promise<ClientRequest[]> {
+  try {
+    // Attempt to create table if it doesn't exist (for fresh deployments)
+    await query(`
+      CREATE TABLE IF NOT EXISTS client_requests (
+        id SERIAL PRIMARY KEY,
+        content TEXT NOT NULL,
+        category TEXT,
+        status TEXT DEFAULT 'Pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    const result = await query('SELECT * FROM client_requests ORDER BY created_at DESC');
+    return result.rows as ClientRequest[];
+  } catch (e) {
+    console.error("Failed to fetch requests or init table:", e);
+    return [];
+  }
+}
+
+export async function updateStatus(id: number, newStatus: string) {
+  try {
+    await query(
+      'UPDATE client_requests SET status = $1 WHERE id = $2',
+      [newStatus, id]
+    );
+    revalidatePath('/');
+  } catch (e) {
+    console.error("Failed to update status:", e);
+    throw new Error('Failed to update status');
   }
 }
