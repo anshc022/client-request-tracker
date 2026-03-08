@@ -88,9 +88,11 @@ export default function Dashboard({ initialRequests }: DashboardProps) {
   }, [initialRequests, activeTab, searchQuery]);
 
   const StatusIcon = ({ status, className = "" }: { status: string, className?: string }) => {
-    if (status === 'Done') return <CheckCircle2 className={`w-4 h-4 text-indigo-500 ${className}`} />;
-    if (status === 'In Progress') return <Clock className={`w-4 h-4 text-orange-500 ${className}`} />;
-    return <Circle className={`w-4 h-4 text-gray-400 ${className}`} />;
+    const finalClass = className || "w-4 h-4 text-gray-400";
+    
+    if (status === 'Done') return <CheckCircle2 className={finalClass} />;
+    if (status === 'In Progress') return <Clock className={finalClass} />;
+    return <Circle className={finalClass} />;
   };
 
   const CategoryBadge = ({ category }: { category: string }) => {
@@ -155,7 +157,6 @@ export default function Dashboard({ initialRequests }: DashboardProps) {
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[#1A1C1E] z-50 flex items-center justify-between px-4 border-b border-gray-800">
         <div className="flex items-center gap-3">
-          <div className="w-6 h-6 bg-indigo-500 rounded flex items-center justify-center text-white text-xs font-bold">L</div>
           <span className="text-white font-semibold">LinearTrack</span>
         </div>
         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-gray-400">
@@ -195,7 +196,7 @@ export default function Dashboard({ initialRequests }: DashboardProps) {
                 placeholder="Search..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-1.5 text-sm bg-gray-50 border-transparent rounded-md focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-gray-400"
+                className="bg-gray-100 rounded-md border-none px-4 py-2 text-sm w-full focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
           </div>
@@ -210,42 +211,82 @@ export default function Dashboard({ initialRequests }: DashboardProps) {
         <div className="flex-1 overflow-y-auto">
           <div className="min-w-full inline-block align-middle">
             <div className="border-b border-gray-100">
-              {filteredRequests.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-                  <Inbox className="w-8 h-8 mb-2 opacity-20" />
-                  <p className="text-sm">No requests found</p>
-                </div>
-              ) : (
-                filteredRequests.map((req) => (
+          {filteredRequests.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+              <Inbox className="w-8 h-8 mb-2 opacity-20" />
+              <p className="text-sm">No requests found</p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden md:block">
+                {filteredRequests.map((req) => (
                   <div 
                     key={req.id}
                     onClick={() => setSelectedRequest(req)}
-                    className="group flex items-center gap-3 px-4 md:px-6 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="flex items-center p-3 border-b border-gray-100 bg-white cursor-pointer hover:bg-gray-50 transition-colors group"
                   >
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); rotateStatus(req.status, req.id); }}
-                      className="flex-shrink-0 hover:scale-110 transition-transform"
-                    >
-                      <StatusIcon status={req.status} />
-                    </button>
+                    <div className="flex items-center gap-3 w-16 shrink-0">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); rotateStatus(req.status, req.id); }}
+                        className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                      >
+                        <StatusIcon status={req.status} className="w-4 h-4" />
+                      </button>
+                      <span className="text-xs text-gray-400 font-mono group-hover:text-gray-500">#{req.id}</span>
+                    </div>
                     
-                    <span className="text-xs font-mono text-gray-400 w-10 shrink-0">#{req.id}</span>
-                    
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm truncate pr-4 ${req.status === 'Done' ? 'text-gray-400 line-through decoration-gray-300' : 'text-gray-900 font-medium'}`}>
+                    <div className="flex-1 min-w-0 pr-8">
+                      <p className="text-sm text-gray-900 font-medium truncate">
                         {req.content}
                       </p>
                     </div>
 
-                    <div className="hidden sm:flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-6 shrink-0">
                       <CategoryBadge category={req.category} />
-                      <span className="text-xs text-gray-400 w-16 text-right">
+                      <span className="text-xs text-gray-400 w-24 text-right font-mono tabular-nums">
                         {new Date(req.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
                     </div>
                   </div>
-                ))
-              )}
+                ))}
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden block space-y-3 p-4 bg-gray-50/50 pb-24">
+                {filteredRequests.map((req) => (
+                  <div 
+                    key={req.id}
+                    onClick={() => setSelectedRequest(req)}
+                    className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 active:scale-[0.98] transition-all"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                       <div className="flex items-center gap-2">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); rotateStatus(req.status, req.id); }}
+                            className="p-1.5 -ml-1.5 hover:bg-gray-50 rounded-full transition-colors"
+                          >
+                            <StatusIcon status={req.status} className="w-4 h-4" />
+                          </button>
+                          <span className="font-mono text-[10px] text-gray-400 tracking-wider">#{req.id}</span>
+                       </div>
+                       <span className="text-[10px] text-gray-500 font-medium bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">
+                          {new Date(req.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                       </span>
+                    </div>
+
+                    <h3 className="text-sm font-bold text-gray-900 mb-4 line-clamp-3 leading-relaxed">
+                       {req.content}
+                    </h3>
+                    
+                    <div className="flex items-center justify-end border-t border-gray-50 pt-3">
+                       <CategoryBadge category={req.category} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
             </div>
           </div>
         </div>
@@ -275,12 +316,14 @@ export default function Dashboard({ initialRequests }: DashboardProps) {
             </div>
 
             {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto p-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 leading-snug">
-                {selectedRequest.content}
-              </h2>
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="prose prose-sm max-w-none">
+                 <p className="text-gray-900 text-sm leading-relaxed whitespace-pre-wrap font-mono bg-gray-50 p-4 rounded-lg border border-gray-100">
+                    {selectedRequest.content}
+                 </p>
+              </div>
 
-              <div className="space-y-6">
+              <div className="space-y-6 mt-6">
                 <div className="flex items-center justify-between py-4 border-t border-gray-100">
                   <span className="text-sm text-gray-500">Status</span>
                   <button 
