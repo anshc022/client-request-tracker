@@ -26,9 +26,10 @@ interface ClientRequest {
 
 interface DashboardProps {
   initialRequests: ClientRequest[];
+  isDbConnected?: boolean;
 }
 
-export default function Dashboard({ initialRequests }: DashboardProps) {
+export default function Dashboard({ initialRequests, isDbConnected }: DashboardProps) {
   const [activeTab, setActiveTab] = useState('Active');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRequest, setSelectedRequest] = useState<ClientRequest | null>(null);
@@ -146,11 +147,11 @@ export default function Dashboard({ initialRequests }: DashboardProps) {
           </button>
         </nav>
 
-        <div className="p-4 border-t border-gray-800/50">
-          <button className="flex items-center gap-3 text-sm font-medium hover:text-white transition-colors">
-            <Settings className="w-4 h-4" />
-            Settings
-          </button>
+        <div className="p-4 border-t border-gray-800/50 space-y-3">
+          <div className="flex items-center gap-2 text-xs">
+            <span className={`w-2 h-2 rounded-full ${isDbConnected ? 'bg-green-500' : 'bg-red-500'}`}></span>
+            <span>{isDbConnected ? 'DB Connected' : 'DB Error'}</span>
+          </div>
         </div>
       </aside>
 
