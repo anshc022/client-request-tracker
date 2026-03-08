@@ -45,3 +45,13 @@ export async function updateStatus(id: number, newStatus: string) {
     throw new Error('Failed to update status');
   }
 }
+
+export async function checkDbConnection(): Promise<boolean> {
+  try {
+    await query('SELECT 1');
+    return true;
+  } catch (e) {
+    console.error("DB Connection check failed:", e);
+    return false;
+  }
+}

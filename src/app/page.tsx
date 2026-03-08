@@ -1,8 +1,10 @@
-import { getRequests } from './actions';
+import { getRequests, checkDbConnection } from './actions';
 import StatusControl from '@/components/StatusControl';
+import { StatusBadge } from '@/components/StatusBadge';
 
 export default async function Home() {
   const requests = await getRequests();
+  const isDbConnected = await checkDbConnection();
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-800 py-8 px-4 sm:px-6 lg:px-8">
@@ -26,7 +28,7 @@ export default async function Home() {
         {/* Requests Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {requests.length > 0 ? (
-            requests.map((req) => (
+            requests.map((req: any) => (
               <div key={req.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow">
                 <div>
                   <div className="flex justify-between items-start mb-2">
@@ -66,6 +68,8 @@ export default async function Home() {
             </div>
           )}
         </div>
+        
+        <StatusBadge isConnected={isDbConnected} />
 
       </div>
     </main>
