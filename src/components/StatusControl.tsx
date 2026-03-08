@@ -14,9 +14,9 @@ export default function StatusControl({ id, currentStatus }: StatusControlProps)
 
   // Map backend status strings to display labels
   const statuses = [
-    { value: 'Pending', label: 'Pending' },
-    { value: 'In Progress', label: 'In Progress' },
-    { value: 'Done', label: 'Done' }
+    { value: 'Pending', label: 'Pending', color: 'bg-yellow-100 text-yellow-800' },
+    { value: 'In Progress', label: 'In Progress', color: 'bg-blue-100 text-blue-800' },
+    { value: 'Done', label: 'Done', color: 'bg-green-100 text-green-800' }
   ];
 
   const handleStatusChange = async (newStatus: string) => {
@@ -34,23 +34,26 @@ export default function StatusControl({ id, currentStatus }: StatusControlProps)
   };
 
   return (
-    <div className="flex bg-gray-100 rounded-md p-1 gap-1">
-      {statuses.map((s) => (
-        <button
-          key={s.value}
-          onClick={() => handleStatusChange(s.value)}
-          disabled={loading}
-          className={`
-            px-2 py-1 text-[10px] font-medium rounded transition-all flex-1
-            ${status === s.value 
-              ? 'bg-white text-indigo-700 shadow-sm ring-1 ring-black/5' 
-              : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200'}
-            ${loading ? 'opacity-50 cursor-wait' : ''}
-          `}
-        >
-          {s.label}
-        </button>
-      ))}
+    <div className="flex bg-gray-50 rounded-md p-1 gap-1 border border-gray-100">
+      {statuses.map((s) => {
+        const isActive = status === s.value;
+        return (
+          <button
+            key={s.value}
+            onClick={() => handleStatusChange(s.value)}
+            disabled={loading}
+            className={`
+              px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide rounded-md transition-all flex-1
+              ${isActive 
+                ? `${s.color} shadow-sm ring-1 ring-black/5` 
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}
+              ${loading ? 'opacity-50 cursor-wait' : ''}
+            `}
+          >
+            {s.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
