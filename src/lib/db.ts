@@ -1,21 +1,19 @@
 import { Pool } from 'pg';
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  },
+  user: process.env.POSTGRES_USER || 'postgres',
+  host: process.env.POSTGRES_HOST || 'localhost',
+  database: process.env.POSTGRES_DB || 'postgres',
+  password: process.env.POSTGRES_PASSWORD || 'password',
+  port: parseInt(process.env.POSTGRES_PORT || '5432'),
 });
 
-export const query = async (text: string, params?: any[]) => {
-  const start = Date.now();
+export async function query(text: string, params?: any[]) {
+  const client = await pool.connect();
   try {
-    const res = await pool.query(text, params);
-    const duration = Date.now() - start;
-    console.log('executed query', { text, duration, rows: res.rowCount });
+    const res = await client.query(text, params);
     return res;
-  } catch (error) {
-    console.error('Database query error:', error);
-    throw error;
+  } finally {
+    client.release();
   }
-};
+}
