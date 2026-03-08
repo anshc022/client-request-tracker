@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { getRequests } from './actions';
 import TaskList from '@/components/TaskList';
-import BottomNav from '@/components/BottomNav';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +19,6 @@ export default async function HomePage() {
       </header>
 
       <TaskList tasks={tasks} />
-      <BottomNav />
     </div>
   );
 }
