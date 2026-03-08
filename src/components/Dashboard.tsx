@@ -1,7 +1,20 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import StatusControl from './StatusControl';
+import { 
+  CheckCircle2, 
+  Circle, 
+  Clock, 
+  Filter, 
+  Inbox, 
+  Layout, 
+  Search, 
+  Settings,
+  MoreHorizontal,
+  ArrowUpRight,
+  Menu,
+  X
+} from 'lucide-react';
 
 interface ClientRequest {
   id: number;
@@ -16,188 +29,310 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ initialRequests }: DashboardProps) {
-  // Filters State
-  const [statusFilter, setStatusFilter] = useState<string[]>([]);
-  const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
-
-  // Filter & Sort Logic
-  const filteredGroups = useMemo(() => {
-    let processed = [...initialRequests];
-
-    // 1. Filter
-    if (statusFilter.length > 0) {
-      processed = processed.filter(r => statusFilter.includes(r.status || 'Pending'));
-    }
-    if (categoryFilter.length > 0) {
-      processed = processed.filter(r => categoryFilter.includes(r.category));
-    }
-
-    // 2. Separate Active vs Completed (older than 24h)
-    const now = new Date();
-    const oneDayMs = 24 * 60 * 60 * 1000;
-    
-    const groups: Record<string, ClientRequest[]> = {
-      'Today': [],
-      'Yesterday': [],
-      'Older': [],
-      'Completed': []
+  const [activeTab, setActiveTab] = useState('Active');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRequest, setSelectedRequest] = useState<ClientRequest | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Status rotation logic
+  const rotateStatus = async (current: string, id: number) => {
+    const map: Record<string, string> = {
+      'Pending': 'In Progress',
+      'In Progress': 'Done',
+      'Done': 'Pending'
     };
-
-    processed.forEach(req => {
-      const createdAt = new Date(req.created_at);
-      const isDone = req.status === 'Done';
-      const timeDiff = now.getTime() - createdAt.getTime();
-      
-      // Smart Sorting: "Done" tasks > 24h go to Completed
-      if (isDone && timeDiff > oneDayMs) {
-        groups['Completed'].push(req);
-        return;
-      }
-
-      // Date Grouping
-      const today = new Date();
-      today.setHours(0,0,0,0);
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      
-      const reqDate = new Date(createdAt);
-      reqDate.setHours(0,0,0,0);
-
-      if (reqDate.getTime() === today.getTime()) {
-        groups['Today'].push(req);
-      } else if (reqDate.getTime() === yesterday.getTime()) {
-        groups['Yesterday'].push(req);
-      } else {
-        groups['Older'].push(req);
-      }
-    });
-
-    // 3. Sort within groups: "Done" tasks to bottom, otherwise new first
-    Object.keys(groups).forEach(key => {
-      groups[key].sort((a, b) => {
-        // Primary: Status (Done at bottom)
-        const aDone = a.status === 'Done';
-        const bDone = b.status === 'Done';
-        if (aDone && !bDone) return 1;
-        if (!aDone && bDone) return -1;
-
-        // Secondary: Date (Newest first)
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    const next = map[current] || 'Pending';
+    
+    // Optimistic update would go here in a real app
+    // For now we just reload to reflect DB state changes managed by parent/server actions
+    // But since this component receives props, we'd ideally need a server action passed down
+    // For this implementation, we'll assume the parent handles data refreshment or we'd add an API call here.
+    
+    try {
+      await fetch('/api/update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: next })
       });
-    });
-
-    return groups;
-  }, [initialRequests, statusFilter, categoryFilter]);
-
-  const toggleFilter = (filter: string[], setFilter: (val: string[]) => void, value: string) => {
-    if (filter.includes(value)) {
-      setFilter(filter.filter(item => item !== value));
-    } else {
-      setFilter([...filter, value]);
+      window.location.reload(); 
+    } catch (err) {
+      console.error('Failed to update status', err);
     }
   };
 
-  const sections = ['Today', 'Yesterday', 'Older', 'Completed'];
+  const filteredRequests = useMemo(() => {
+    let data = [...initialRequests];
+
+    // 1. Search
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      data = data.filter(r => 
+        r.content.toLowerCase().includes(q) || 
+        r.id.toString().includes(q) ||
+        r.category.toLowerCase().includes(q)
+      );
+    }
+
+    // 2. Tab Filter
+    if (activeTab === 'Inbox') {
+       // Show all non-done
+       data = data.filter(r => r.status !== 'Done');
+    } else if (activeTab === 'Active') {
+       data = data.filter(r => r.status === 'In Progress' || r.status === 'Pending');
+    } else if (activeTab === 'Done') {
+       data = data.filter(r => r.status === 'Done');
+    }
+
+    // 3. Sort
+    return data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [initialRequests, activeTab, searchQuery]);
+
+  const StatusIcon = ({ status, className = "" }: { status: string, className?: string }) => {
+    if (status === 'Done') return <CheckCircle2 className={`w-4 h-4 text-indigo-500 ${className}`} />;
+    if (status === 'In Progress') return <Clock className={`w-4 h-4 text-orange-500 ${className}`} />;
+    return <Circle className={`w-4 h-4 text-gray-400 ${className}`} />;
+  };
+
+  const CategoryBadge = ({ category }: { category: string }) => {
+    const styles = {
+      'Bug': 'bg-red-100 text-red-700 border-red-200',
+      'Feature': 'bg-purple-100 text-purple-700 border-purple-200',
+      'Other': 'bg-gray-100 text-gray-700 border-gray-200'
+    }[category] || 'bg-gray-100 text-gray-700 border-gray-200';
+
+    return (
+      <span className={`px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold rounded border ${styles}`}>
+        {category}
+      </span>
+    );
+  };
 
   return (
-    <div className="flex flex-col md:flex-row gap-8">
-      {/* Sidebar Filters */}
-      <aside className="w-full md:w-64 flex-shrink-0 space-y-8">
-        <div>
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Status</h3>
-          <div className="space-y-2">
-            {['Pending', 'In Progress', 'Done'].map(status => (
-              <label key={status} className="flex items-center space-x-3 cursor-pointer group">
-                <input 
-                  type="checkbox" 
-                  checked={statusFilter.includes(status)}
-                  onChange={() => toggleFilter(statusFilter, setStatusFilter, status)}
-                  className="form-checkbox h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 transition duration-150 ease-in-out"
-                />
-                <span className="text-sm text-gray-700 group-hover:text-gray-900">{status}</span>
-              </label>
-            ))}
-          </div>
+    <div className="flex h-screen bg-white font-sans text-gray-900 overflow-hidden">
+      
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex w-64 flex-col bg-[#1A1C1E] text-gray-400 border-r border-gray-800">
+        <div className="p-4 flex items-center gap-3 border-b border-gray-800/50">
+          <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center text-white font-bold">L</div>
+          <span className="text-gray-100 font-semibold tracking-tight">LinearTrack</span>
         </div>
 
-        <div>
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Category</h3>
-          <div className="space-y-2">
-            {['Bug', 'Feature', 'Other'].map(cat => (
-              <label key={cat} className="flex items-center space-x-3 cursor-pointer group">
-                <input 
-                  type="checkbox" 
-                  checked={categoryFilter.includes(cat)}
-                  onChange={() => toggleFilter(categoryFilter, setCategoryFilter, cat)}
-                  className="form-checkbox h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 transition duration-150 ease-in-out"
-                />
-                <span className="text-sm text-gray-700 group-hover:text-gray-900">{cat}</span>
-              </label>
-            ))}
-          </div>
+        <nav className="flex-1 p-2 space-y-0.5">
+          <button 
+            onClick={() => setActiveTab('Inbox')}
+            className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors
+            ${activeTab === 'Inbox' ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-gray-200'}`}
+          >
+            <Inbox className="w-4 h-4" />
+            Inbox
+          </button>
+          <button 
+            onClick={() => setActiveTab('Active')}
+            className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors
+            ${activeTab === 'Active' ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-gray-200'}`}
+          >
+            <Layout className="w-4 h-4" />
+            Active
+          </button>
+          <button 
+            onClick={() => setActiveTab('Done')}
+            className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors
+            ${activeTab === 'Done' ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-gray-200'}`}
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            Done
+          </button>
+        </nav>
+
+        <div className="p-4 border-t border-gray-800/50">
+          <button className="flex items-center gap-3 text-sm font-medium hover:text-white transition-colors">
+            <Settings className="w-4 h-4" />
+            Settings
+          </button>
         </div>
       </aside>
 
-      {/* Task List */}
-      <div className="flex-1 space-y-8">
-        {sections.map(section => {
-          const tasks = filteredGroups[section];
-          if (tasks.length === 0) return null;
+      {/* Mobile Header */}
+      <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[#1A1C1E] z-50 flex items-center justify-between px-4 border-b border-gray-800">
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-6 bg-indigo-500 rounded flex items-center justify-center text-white text-xs font-bold">L</div>
+          <span className="text-white font-semibold">LinearTrack</span>
+        </div>
+        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-gray-400">
+          {isMobileMenuOpen ? <X /> : <Menu />}
+        </button>
+      </div>
 
-          return (
-            <div key={section}>
-              <h2 className="text-sm font-bold text-gray-900 mb-3 flex items-center">
-                {section} 
-                <span className="ml-2 bg-gray-100 text-gray-500 text-xs py-0.5 px-2 rounded-full">{tasks.length}</span>
-              </h2>
-              <div className="bg-white shadow-sm border border-gray-200 rounded-lg divide-y divide-gray-100 overflow-hidden">
-                {tasks.map(req => (
-                  <div key={req.id} className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-gray-50 transition-colors ${req.status === 'Done' ? 'bg-gray-50/50' : ''}`}>
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm pt-14">
+          <div className="bg-[#1A1C1E] p-4 space-y-2 border-b border-gray-800 text-gray-300">
+            {['Inbox', 'Active', 'Done'].map(tab => (
+              <button
+                key={tab}
+                onClick={() => { setActiveTab(tab); setIsMobileMenuOpen(false); }}
+                className={`w-full text-left px-4 py-3 rounded-md font-medium ${activeTab === tab ? 'bg-white/10 text-white' : ''}`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col min-w-0 md:bg-white bg-gray-50 pt-14 md:pt-0">
+        
+        {/* Header */}
+        <header className="h-14 border-b border-gray-100 flex items-center justify-between px-4 md:px-6 bg-white sticky top-0 z-10">
+          <div className="flex items-center gap-4 flex-1">
+            <h1 className="text-sm font-semibold text-gray-900 hidden md:block">{activeTab}</h1>
+            <div className="h-4 w-px bg-gray-200 hidden md:block"></div>
+            <div className="relative flex-1 max-w-md group">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-1.5 text-sm bg-gray-50 border-transparent rounded-md focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-gray-400"
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="p-1.5 hover:bg-gray-100 rounded text-gray-500">
+              <Filter className="w-4 h-4" />
+            </button>
+          </div>
+        </header>
+
+        {/* Task List */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="min-w-full inline-block align-middle">
+            <div className="border-b border-gray-100">
+              {filteredRequests.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+                  <Inbox className="w-8 h-8 mb-2 opacity-20" />
+                  <p className="text-sm">No requests found</p>
+                </div>
+              ) : (
+                filteredRequests.map((req) => (
+                  <div 
+                    key={req.id}
+                    onClick={() => setSelectedRequest(req)}
+                    className="group flex items-center gap-3 px-4 md:px-6 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors"
+                  >
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); rotateStatus(req.status, req.id); }}
+                      className="flex-shrink-0 hover:scale-110 transition-transform"
+                    >
+                      <StatusIcon status={req.status} />
+                    </button>
                     
-                    <div className="flex items-start space-x-4 flex-1">
-                      <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0
-                        ${req.category === 'Bug' ? 'bg-red-400' : 
-                          req.category === 'Feature' ? 'bg-purple-400' : 'bg-blue-400'}`} 
-                        title={req.category}
-                      />
-                      
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-xs font-mono ${req.status === 'Done' ? 'text-gray-400' : 'text-gray-500'}`}>#{req.id}</span>
-                          <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border
-                             ${req.category === 'Bug' ? 'bg-red-50 text-red-700 border-red-100' : 
-                               req.category === 'Feature' ? 'bg-purple-50 text-purple-700 border-purple-100' : 
-                               'bg-blue-50 text-blue-700 border-blue-100'}`}>
-                            {req.category}
-                          </span>
-                        </div>
-                        <p className={`text-sm leading-snug break-words ${req.status === 'Done' ? 'text-gray-400 line-through' : 'text-gray-900 font-medium'}`}>
-                          {req.content}
-                        </p>
-                      </div>
+                    <span className="text-xs font-mono text-gray-400 w-10 shrink-0">#{req.id}</span>
+                    
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm truncate pr-4 ${req.status === 'Done' ? 'text-gray-400 line-through decoration-gray-300' : 'text-gray-900 font-medium'}`}>
+                        {req.content}
+                      </p>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-4 sm:w-auto w-full pl-6 sm:pl-0">
-                      <time className="text-xs text-gray-400 whitespace-nowrap">
-                        {new Date(req.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </time>
-                      <div className="w-32 flex-shrink-0">
-                         <StatusControl id={req.id} currentStatus={req.status || 'Pending'} />
-                      </div>
+                    <div className="hidden sm:flex items-center gap-3 shrink-0">
+                      <CategoryBadge category={req.category} />
+                      <span className="text-xs text-gray-400 w-16 text-right">
+                        {new Date(req.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      </span>
                     </div>
-
                   </div>
-                ))}
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Side Sheet Modal */}
+      {selectedRequest && (
+        <div className="fixed inset-0 z-50 flex justify-end" role="dialog">
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" onClick={() => setSelectedRequest(null)} />
+          <div className="relative w-full max-w-lg bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+            
+            {/* Modal Header */}
+            <div className="h-14 border-b border-gray-100 flex items-center justify-between px-6">
+              <div className="flex items-center gap-3 text-gray-500">
+                <span className="font-mono text-xs">#{selectedRequest.id}</span>
+                <span className="text-gray-300">/</span>
+                <span className="text-xs font-medium uppercase tracking-wide">{selectedRequest.category}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <button className="p-2 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600">
+                  <MoreHorizontal className="w-4 h-4" />
+                </button>
+                <button onClick={() => setSelectedRequest(null)} className="p-2 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600">
+                  <X className="w-4 h-4" />
+                </button>
               </div>
             </div>
-          );
-        })}
-        
-        {Object.values(filteredGroups).every(g => g.length === 0) && (
-          <div className="text-center py-12 bg-white rounded-lg border border-dashed border-gray-300">
-            <p className="text-gray-500">No tasks match your filters.</p>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6 leading-snug">
+                {selectedRequest.content}
+              </h2>
+
+              <div className="space-y-6">
+                <div className="flex items-center justify-between py-4 border-t border-gray-100">
+                  <span className="text-sm text-gray-500">Status</span>
+                  <button 
+                    onClick={() => rotateStatus(selectedRequest.status, selectedRequest.id)}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 text-sm hover:border-gray-300 transition-colors"
+                  >
+                    <StatusIcon status={selectedRequest.status} />
+                    <span className="font-medium">{selectedRequest.status || 'Pending'}</span>
+                  </button>
+                </div>
+                
+                <div className="flex items-center justify-between py-4 border-t border-gray-100">
+                  <span className="text-sm text-gray-500">Created</span>
+                  <span className="text-sm text-gray-900">
+                    {new Date(selectedRequest.created_at).toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="pt-8">
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Description</h3>
+                  <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-600 leading-relaxed">
+                    No additional description provided.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-between items-center text-xs text-gray-400">
+              <span>Press ESC to close</span>
+              <button className="flex items-center gap-1 hover:text-indigo-600 transition-colors">
+                Open full view <ArrowUpRight className="w-3 h-3" />
+              </button>
+            </div>
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Mobile Bottom Nav */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 flex items-center justify-around z-30 pb-safe">
+        <button onClick={() => setActiveTab('Inbox')} className={`flex flex-col items-center gap-1 ${activeTab === 'Inbox' ? 'text-indigo-600' : 'text-gray-400'}`}>
+          <Inbox className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Inbox</span>
+        </button>
+        <button onClick={() => setActiveTab('Active')} className={`flex flex-col items-center gap-1 ${activeTab === 'Active' ? 'text-indigo-600' : 'text-gray-400'}`}>
+          <Layout className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Active</span>
+        </button>
+        <button onClick={() => setActiveTab('Done')} className={`flex flex-col items-center gap-1 ${activeTab === 'Done' ? 'text-indigo-600' : 'text-gray-400'}`}>
+          <CheckCircle2 className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Done</span>
+        </button>
       </div>
     </div>
   );
