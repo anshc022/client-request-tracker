@@ -21,7 +21,12 @@ export interface TaskLog {
 }
 
 export async function getRequests(): Promise<ClientRequest[]> {
-  const result = await query('SELECT * FROM client_requests ORDER BY created_at DESC');
+  const result = await query(`
+    SELECT * FROM client_requests 
+    ORDER BY 
+      CASE WHEN status = 'Done' THEN 1 ELSE 0 END ASC,
+      created_at DESC
+  `);
   return result.rows as ClientRequest[];
 }
 
