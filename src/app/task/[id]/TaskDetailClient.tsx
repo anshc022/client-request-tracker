@@ -4,6 +4,7 @@ import { useState } from 'react';
 import StatusSheet from '@/components/StatusSheet';
 import { ClientRequest, TaskLog, addLog } from '@/app/actions';
 import { Send } from 'lucide-react';
+import Image from 'next/image';
 
 export default function TaskDetailClient({ task, logs: initialLogs }: { task: ClientRequest, logs: TaskLog[] }) {
   const [status, setStatus] = useState(task.status);
@@ -46,8 +47,22 @@ export default function TaskDetailClient({ task, logs: initialLogs }: { task: Cl
         <blockquote style={{ borderLeft: '3px solid var(--primary)', background: '#F1F5F9', padding: '12px 16px', borderRadius: '0 8px 8px 0', fontSize: 14, lineHeight: 1.6, color: 'var(--text)' }}>
           {task.content}
         </blockquote>
+        
         {hasMedia && (
-          <p style={{ marginTop: 8, fontSize: 13, color: 'var(--text-muted)' }}>🎙 Transcribed from voice note</p>
+          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>📎 Attached Media:</p>
+            {task.media_urls!.map((url, i) => {
+              if (url.endsWith('.jpg') || url.endsWith('.jpeg') || url.endsWith('.png') || url.endsWith('.webp')) {
+                return (
+                  <div key={i} style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt={`Attachment ${i}`} style={{ width: '100%', display: 'block' }} />
+                  </div>
+                );
+              }
+              return <p key={i} style={{ fontSize: 13, color: 'var(--primary)' }}>🎙 Audio note attached</p>;
+            })}
+          </div>
         )}
       </div>
 
