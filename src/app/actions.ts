@@ -13,6 +13,13 @@ export interface ClientRequest {
   last_notified_status: string | null;
 }
 
+export interface TaskLog {
+  id: number;
+  task_id: number;
+  content: string;
+  created_at: string;
+}
+
 export async function getRequests(): Promise<ClientRequest[]> {
   const result = await query('SELECT * FROM client_requests ORDER BY created_at DESC');
   return result.rows as ClientRequest[];
@@ -23,8 +30,19 @@ export async function getRequestById(id: number): Promise<ClientRequest | null> 
   return (result.rows[0] as ClientRequest) || null;
 }
 
+export async function getTaskLogs(taskId: number): Promise<TaskLog[]> {
+  const result = await query('SELECT * FROM task_logs WHERE task_id = $1 ORDER BY created_at ASC', [taskId]);
+  return result.rows as TaskLog[];
+}
+
+export async function addLog(taskId: number, content: string) {
+  await query('INSERT INTO task_logs (task_id, content) VALUES ($1, $2)', [taskId, content]);
+  revalidatePath(`/task/${taskId}`);
+}
+
 export async function updateStatus(id: number, newStatus: string) {
   await query('UPDATE client_requests SET status = $1 WHERE id = $2', [newStatus, id]);
+  await query('INSERT INTO task_logs (task_id, content) VALUES ($1, $2)', [id, `Status changed to ${newStatus}`]);
   revalidatePath('/');
   revalidatePath(`/task/${id}`);
   revalidatePath('/stats');

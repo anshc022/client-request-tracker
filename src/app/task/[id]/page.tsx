@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { getRequestById } from '@/app/actions';
+import { getRequestById, getTaskLogs } from '@/app/actions';
 import { notFound } from 'next/navigation';
 import TaskDetailClient from './TaskDetailClient';
 
@@ -10,6 +10,8 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const task = await getRequestById(Number(id));
   if (!task) notFound();
+  
+  const logs = await getTaskLogs(Number(id));
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -18,7 +20,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
         <span style={{ fontSize: 16, fontWeight: 600 }}>Task Detail</span>
       </header>
 
-      <TaskDetailClient task={task} />
+      <TaskDetailClient task={task} logs={logs} />
     </div>
   );
 }
