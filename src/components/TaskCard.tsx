@@ -15,7 +15,8 @@ export default function TaskCard({ task }: { task: ClientRequest }) {
     <div style={{ background: 'var(--surface)', borderRadius: 12, border: '1px solid var(--border)', padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: categoryColor(task.category), display: 'inline-block' }} />
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', background: '#F1F5F9', padding: '2px 6px', borderRadius: 4 }}>#{task.id}</span>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: categoryColor(task.category), display: 'inline-block', marginLeft: 4 }} />
           <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>{task.category}</span>
         </div>
         <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{relativeTime(task.created_at)}</span>
