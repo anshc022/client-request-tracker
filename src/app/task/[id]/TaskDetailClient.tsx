@@ -60,7 +60,7 @@ export default function TaskDetailClient({ task, logs: initialLogs }: { task: Cl
                   </div>
                 );
               }
-              return <p key={i} style={{ fontSize: 13, color: 'var(--primary)' }}>🎙 Audio note attached</p>;
+              return <div key={i}><p style={{ fontSize: 13, color: 'var(--primary)', marginBottom: 4 }}>🎙 Audio note attached</p><audio controls src={url} style={{ width: '100%' }} /></div>;
             })}
           </div>
         )}
