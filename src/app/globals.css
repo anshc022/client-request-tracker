@@ -92,7 +92,7 @@ button:focus:not(:focus-visible) { outline: none; }
   filter: brightness(0.95);
 }
 
-/* Responsive sidebar */
+/* Responsive: Home page sidebar */
 @media (min-width: 768px) {
   .mobile-filters { display: none !important; }
   .desktop-sidebar { display: flex !important; }
@@ -100,4 +100,26 @@ button:focus:not(:focus-visible) { outline: none; }
 @media (max-width: 767px) {
   .desktop-sidebar { display: none !important; }
   .mobile-filters { display: flex !important; }
+}
+
+/* Responsive: Detail page grid */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+@media (min-width: 900px) {
+  .detail-grid {
+    grid-template-columns: 1fr 380px;
+  }
+}
+
+/* Hide properties card on mobile (info already in banner) */
+.detail-properties {
+  display: none;
+}
+@media (min-width: 900px) {
+  .detail-properties {
+    display: block;
+  }
 }
