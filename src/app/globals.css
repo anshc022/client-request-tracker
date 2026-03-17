@@ -168,3 +168,21 @@ input:focus {
 .nav-item.active::after {
   width: 20px;
 }
+
+/* Responsive: Desktop sidebar visible, mobile tabs hidden on desktop */
+@media (min-width: 768px) {
+  .mobile-tabs {
+    display: none !important;
+  }
+  .desktop-sidebar {
+    display: block !important;
+  }
+}
+@media (max-width: 767px) {
+  .desktop-sidebar {
+    display: none !important;
+  }
+  .mobile-tabs {
+    display: flex !important;
+  }
+}
