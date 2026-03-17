@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { getRequests } from './actions';
 import TaskList from '@/components/TaskList';
-import { BarChart3, Plus } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,53 +10,48 @@ export default async function HomePage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Clean Header */}
+      {/* Notion-style top bar */}
       <header style={{
-        background: 'var(--surface)',
-        borderBottom: '1px solid var(--border)',
-        padding: '0 20px',
-        position: 'sticky',
-        top: 0,
-        zIndex: 30,
-        height: 56,
+        height: 45,
+        padding: '0 12px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        borderBottom: '1px solid var(--border)',
+        background: 'var(--bg)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 30,
+        fontSize: 14,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 8,
-            background: 'var(--primary)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontSize: 14, fontWeight: 700,
-          }}>P</div>
-          <div>
-            <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.3px' }}>Ping</span>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 18 }}>📋</span>
+          <span style={{ fontWeight: 600, color: 'var(--text)' }}>Ping Tracker</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: 12, marginLeft: 4 }}>{tasks.length} tasks</span>
         </div>
-
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {openCount > 0 && (
             <span style={{
-              fontSize: 12, fontWeight: 600,
-              color: 'var(--primary)',
-              background: 'var(--primary-subtle)',
-              padding: '4px 10px',
-              borderRadius: 20,
+              fontSize: 12, fontWeight: 500,
+              color: 'var(--tag-red-text)',
+              background: 'var(--tag-red)',
+              padding: '1px 8px',
+              borderRadius: 4,
             }}>
               {openCount} open
             </span>
           )}
           <Link href="/stats" style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            color: 'var(--text-muted)', textDecoration: 'none',
-            padding: '6px 12px', borderRadius: 6,
-            fontSize: 13, fontWeight: 500,
-            border: '1px solid var(--border)',
-            background: 'var(--surface)',
+            color: 'var(--text-secondary)',
+            textDecoration: 'none',
+            fontSize: 13,
+            padding: '4px 8px',
+            borderRadius: 4,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
           }}>
-            <BarChart3 size={15} />
-            Stats
+            📊 Stats
           </Link>
         </div>
       </header>

@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import StatusSheet from '@/components/StatusSheet';
 import { ClientRequest, TaskLog, addLog } from '@/app/actions';
-import { Send, Paperclip, ArrowLeft, Clock, Tag, Hash } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { relativeTime, categoryColor, statusConfig } from '@/components/utils';
+import { relativeTime, categoryTag, statusTag } from '@/components/utils';
 
 function formatLogTime(dateStr: string) {
   return new Date(dateStr).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
@@ -44,8 +44,8 @@ export default function TaskDetailClient({ task, logs: initialLogs }: { task: Cl
   const logsEndRef = useRef<HTMLDivElement>(null);
 
   const hasMedia = task.media_urls && task.media_urls.length > 0;
-  const cat = categoryColor(task.category);
-  const stConfig = statusConfig(status);
+  const cat = categoryTag(task.category);
+  const st = statusTag(status);
 
   useEffect(() => {
     try {
@@ -73,344 +73,342 @@ export default function TaskDetailClient({ task, logs: initialLogs }: { task: Cl
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
+      {/* Top bar */}
       <header style={{
+        height: 45,
+        padding: '0 12px',
         display: 'flex',
         alignItems: 'center',
-        gap: 12,
-        padding: '0 20px',
-        background: 'var(--surface)',
+        gap: 6,
         borderBottom: '1px solid var(--border)',
+        background: 'var(--bg)',
         position: 'sticky',
         top: 0,
         zIndex: 30,
-        height: 56,
+        fontSize: 14,
       }}>
-        <Link href="/" style={{ color: 'var(--text-muted)', display: 'flex', padding: 4 }}>
-          <ArrowLeft size={20} />
+        <Link href="/" style={{
+          color: 'var(--text-muted)',
+          display: 'flex', alignItems: 'center',
+          padding: '4px 6px', borderRadius: 4,
+          textDecoration: 'none', fontSize: 13,
+          gap: 4,
+        }}>
+          <ArrowLeft size={16} />
+          <span>Tasks</span>
         </Link>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>PING-{task.id}</span>
-          <span style={{
-            fontSize: 11, fontWeight: 600,
-            color: cat.color, background: cat.bg,
-            padding: '2px 8px', borderRadius: 4,
-          }}>
-            {cat.label}
-          </span>
-        </div>
-        <StatusSheet taskId={task.id} currentStatus={status} onStatusChanged={setStatus} />
+        <span style={{ color: 'var(--text-light)', fontSize: 13 }}>/</span>
+        <span style={{ color: 'var(--text)', fontWeight: 500, fontSize: 13 }}>Task #{task.id}</span>
       </header>
 
-      {/* Desktop: two-column layout */}
-      <div className="detail-layout" style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 120px' }}>
-        <div className="detail-grid">
-          {/* Left: Task info + attachments */}
-          <div>
-            {/* Task Number Banner */}
-            <div style={{
-              background: 'var(--primary-subtle)',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid rgba(99,102,241,0.15)',
-              padding: '16px 20px',
-              marginBottom: 16,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{
-                  width: 44, height: 44, borderRadius: 'var(--radius)',
-                  background: 'var(--primary)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#fff', fontSize: 18, fontWeight: 800,
-                }}>
-                  {task.id}
-                </div>
-                <div>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--primary-dark)', letterSpacing: '-0.3px' }}>
-                    Task #{task.id}
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                    Created {new Date(task.created_at).toLocaleDateString('en-IN', {
-                      day: '2-digit', month: 'short', year: 'numeric',
-                      hour: '2-digit', minute: '2-digit',
-                    })}
-                  </div>
-                </div>
-              </div>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                background: stConfig.bg, color: stConfig.color,
-                padding: '6px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600,
-              }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: stConfig.dot }} />
-                {status}
-              </div>
+      <div className="detail-grid">
+        {/* Main content */}
+        <div className="detail-main" style={{ padding: '0 0 100px' }}>
+          {/* Title area — big, Notion-style */}
+          <div style={{ padding: '48px 48px 0', maxWidth: 720 }}>
+            {/* Icon + ID */}
+            <div style={{ fontSize: 48, marginBottom: 8 }}>
+              {task.category === 'Bug' ? '🐛' : '✨'}
             </div>
-
-            {/* Description Card */}
-            <div style={{
-              background: 'var(--surface)',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--border)',
-              padding: '20px',
-              marginBottom: 16,
+            <h1 style={{
+              fontSize: 32,
+              fontWeight: 700,
+              lineHeight: 1.25,
+              color: 'var(--text)',
+              marginBottom: 4,
+              wordBreak: 'break-word',
             }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-                Description
-              </div>
-              <p style={{
-                fontSize: 15,
-                lineHeight: 1.75,
-                color: 'var(--text)',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-              }}>
-                {task.content}
-              </p>
+              Task #{task.id}
+            </h1>
+            <div style={{
+              fontSize: 14,
+              color: 'var(--text-muted)',
+              marginBottom: 32,
+            }}>
+              Created {new Date(task.created_at).toLocaleDateString('en-IN', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+              })}
             </div>
+          </div>
 
-            {/* Attachments Card */}
-            {hasMedia && (
-              <div style={{
-                background: 'var(--surface)',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--border)',
-                padding: '20px',
-                marginBottom: 16,
-              }}>
-                <div style={{
-                  fontSize: 11, fontWeight: 600, color: 'var(--text-light)',
-                  textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12,
-                  display: 'flex', alignItems: 'center', gap: 6,
+          {/* Properties — inline, Notion-style table */}
+          <div style={{ padding: '0 48px 24px', maxWidth: 720 }}>
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+              {[
+                { label: 'Status', value: <StatusSheet taskId={task.id} currentStatus={status} onStatusChanged={setStatus} /> },
+                { label: 'Type', value: (
+                  <span style={{ background: cat.bg, color: cat.color, padding: '1px 6px', borderRadius: 4, fontSize: 12, fontWeight: 500 }}>
+                    {cat.label}
+                  </span>
+                )},
+                { label: 'ID', value: <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text-secondary)' }}>PING-{task.id}</span> },
+                { label: 'Attachments', value: <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{task.media_urls?.length || 0} file{(task.media_urls?.length || 0) !== 1 ? 's' : ''}</span> },
+              ].map(row => (
+                <div key={row.label} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '6px 0',
+                  fontSize: 14,
                 }}>
-                  <Paperclip size={13} />
-                  {task.media_urls!.length} Attachment{task.media_urls!.length > 1 ? 's' : ''}
+                  <div style={{ width: 140, flexShrink: 0, color: 'var(--text-muted)', fontSize: 13 }}>
+                    {row.label}
+                  </div>
+                  <div>{row.value}</div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {task.media_urls!.map((url, i) => {
-                    if (url.match(/\.(jpg|jpeg|png|webp)$/i)) {
-                      return (
-                        <div key={i} style={{ borderRadius: 'var(--radius)', overflow: 'hidden', border: '1px solid var(--border)' }}>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={url} alt={`Attachment ${i + 1}`} style={{ width: '100%', maxHeight: 500, objectFit: 'contain', display: 'block', background: '#F9FAFB' }} />
-                        </div>
-                      );
-                    }
+              ))}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div style={{ height: 1, background: 'var(--border)', margin: '0 48px' }} />
+
+          {/* Content body */}
+          <div style={{ padding: '24px 48px', maxWidth: 720 }}>
+            <p style={{
+              fontSize: 16,
+              lineHeight: 1.75,
+              color: 'var(--text)',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+            }}>
+              {task.content}
+            </p>
+          </div>
+
+          {/* Attachments */}
+          {hasMedia && (
+            <div style={{ padding: '0 48px 24px', maxWidth: 720 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 12 }}>
+                Attachments
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {task.media_urls!.map((url, i) => {
+                  if (url.match(/\.(jpg|jpeg|png|webp)$/i)) {
                     return (
                       <div key={i} style={{
-                        display: 'flex', alignItems: 'center', gap: 10,
-                        padding: '12px 14px',
-                        background: 'var(--bg)',
-                        borderRadius: 'var(--radius)',
+                        borderRadius: 4, overflow: 'hidden',
                         border: '1px solid var(--border)',
+                        maxWidth: 500,
                       }}>
-                        <div style={{
-                          width: 40, height: 40, borderRadius: 8,
-                          background: 'var(--primary-subtle)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 16, flexShrink: 0,
-                        }}>🎵</div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Audio Recording</div>
-                          <audio controls src={url} style={{ height: 32, width: '100%' }} />
-                        </div>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt={`Attachment ${i + 1}`} style={{
+                          width: '100%', display: 'block',
+                          maxHeight: 400, objectFit: 'contain',
+                          background: 'var(--bg-secondary)',
+                        }} />
                       </div>
                     );
-                  })}
+                  }
+                  return (
+                    <div key={i} style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '10px 12px',
+                      background: 'var(--bg-secondary)',
+                      borderRadius: 4,
+                      border: '1px solid var(--border)',
+                      maxWidth: 400,
+                    }}>
+                      <span style={{ fontSize: 20 }}>🎵</span>
+                      <audio controls src={url} style={{ height: 32, flex: 1 }} />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Divider */}
+          <div style={{ height: 1, background: 'var(--border)', margin: '0 48px' }} />
+
+          {/* Comments / Activity */}
+          <div style={{ padding: '24px 48px', maxWidth: 720 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', marginBottom: 16 }}>
+              Comments
+              <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: 6, fontSize: 13 }}>
+                {logs.length}
+              </span>
+            </div>
+
+            {/* Add comment input */}
+            <div style={{
+              display: 'flex', gap: 8, marginBottom: 24, alignItems: 'flex-start',
+            }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: 14,
+                background: 'var(--bg-hover)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 13, color: 'var(--text-muted)', flexShrink: 0, marginTop: 4,
+              }}>
+                U
+              </div>
+              <div style={{ flex: 1 }}>
+                <input
+                  type="text"
+                  placeholder="Add a comment..."
+                  value={newLog}
+                  onChange={e => setNewLog(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAddLog()}
+                  style={{
+                    width: '100%',
+                    border: '1px solid var(--border)',
+                    borderRadius: 4,
+                    padding: '8px 12px',
+                    fontSize: 14,
+                    color: 'var(--text)',
+                    background: 'var(--bg)',
+                  }}
+                />
+                {newLog.trim() && (
+                  <div style={{ marginTop: 6, display: 'flex', justifyContent: 'flex-end' }}>
+                    <button
+                      onClick={handleAddLog}
+                      disabled={isSubmitting}
+                      style={{
+                        background: 'var(--primary)',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 4,
+                        padding: '4px 12px',
+                        fontSize: 13,
+                        fontWeight: 500,
+                        cursor: isSubmitting ? 'default' : 'pointer',
+                        opacity: isSubmitting ? 0.6 : 1,
+                      }}
+                    >
+                      Comment
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Comment list */}
+            {logGroups.map(group => (
+              <div key={group.date}>
+                <div style={{
+                  fontSize: 12, fontWeight: 500,
+                  color: 'var(--text-muted)',
+                  padding: '8px 0 4px',
+                }}>
+                  {group.date}
                 </div>
+                {group.logs.map(log => {
+                  const isStatusChange = log.content.startsWith('Status changed to');
+                  if (isStatusChange) {
+                    return (
+                      <div key={log.id} style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '6px 0',
+                        fontSize: 13, color: 'var(--text-muted)',
+                        fontStyle: 'italic',
+                      }}>
+                        <span style={{
+                          width: 6, height: 6, borderRadius: 3,
+                          background: 'var(--primary)',
+                          flexShrink: 0,
+                        }} />
+                        {log.content}
+                        <span style={{ fontSize: 11, color: 'var(--text-light)' }}>{formatLogTime(log.created_at)}</span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={log.id} style={{
+                      display: 'flex', gap: 8, padding: '8px 0',
+                      borderBottom: '1px solid var(--border-light)',
+                    }}>
+                      <div style={{
+                        width: 28, height: 28, borderRadius: 14,
+                        background: 'var(--bg-hover)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 12, color: 'var(--text-muted)', flexShrink: 0,
+                      }}>
+                        U
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 2 }}>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Update</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-light)' }}>{formatLogTime(log.created_at)}</span>
+                        </div>
+                        <p style={{
+                          fontSize: 14, lineHeight: 1.6,
+                          color: 'var(--text)',
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word',
+                        }}>
+                          {log.content}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+
+            {logs.length === 0 && (
+              <div style={{
+                padding: '24px 0',
+                textAlign: 'center',
+                color: 'var(--text-light)',
+                fontSize: 13,
+              }}>
+                No comments yet.
               </div>
             )}
 
-            {/* Properties Card — desktop only */}
-            <div className="detail-properties" style={{
-              background: 'var(--surface)',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--border)',
-              padding: '20px',
-            }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 14 }}>
-                Properties
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 24px', fontSize: 13 }}>
-                <div>
-                  <span style={{ color: 'var(--text-light)', fontSize: 12 }}>Task ID</span>
-                  <div style={{ fontWeight: 600, color: 'var(--text)', marginTop: 2 }}>PING-{task.id}</div>
-                </div>
-                <div>
-                  <span style={{ color: 'var(--text-light)', fontSize: 12 }}>Category</span>
-                  <div style={{ marginTop: 2 }}>
-                    <span style={{ color: cat.color, background: cat.bg, padding: '2px 8px', borderRadius: 4, fontWeight: 600, fontSize: 12 }}>{cat.label}</span>
-                  </div>
-                </div>
-                <div>
-                  <span style={{ color: 'var(--text-light)', fontSize: 12 }}>Status</span>
-                  <div style={{ marginTop: 2 }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: stConfig.color, background: stConfig.bg, padding: '2px 8px', borderRadius: 4, fontWeight: 600, fontSize: 12 }}>
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: stConfig.dot }} />
-                      {status}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <span style={{ color: 'var(--text-light)', fontSize: 12 }}>Created</span>
-                  <div style={{ fontWeight: 500, color: 'var(--text-secondary)', marginTop: 2 }}>
-                    {relativeTime(task.created_at)}
-                  </div>
-                </div>
-                <div>
-                  <span style={{ color: 'var(--text-light)', fontSize: 12 }}>Updates</span>
-                  <div style={{ fontWeight: 600, color: 'var(--text)', marginTop: 2 }}>{logs.length}</div>
-                </div>
-                <div>
-                  <span style={{ color: 'var(--text-light)', fontSize: 12 }}>Attachments</span>
-                  <div style={{ fontWeight: 600, color: 'var(--text)', marginTop: 2 }}>{task.media_urls?.length || 0}</div>
-                </div>
-              </div>
-            </div>
+            <div ref={logsEndRef} />
+          </div>
+        </div>
+
+        {/* Right sidebar — properties (desktop) */}
+        <div className="detail-sidebar" style={{ padding: '24px 16px', background: 'var(--bg-secondary)' }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 16 }}>
+            Properties
           </div>
 
-          {/* Right: Activity */}
-          <div style={{
-            background: 'var(--surface)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border)',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            height: 'fit-content',
-            maxHeight: 'calc(100vh - 130px)',
-            position: 'sticky',
-            top: 80,
-          }}>
-            <div style={{
-              padding: '14px 20px',
+          {[
+            { label: 'Status', value: (
+              <span style={{ background: st.bg, color: st.color, padding: '1px 6px', borderRadius: 4, fontSize: 12, fontWeight: 500 }}>
+                {status}
+              </span>
+            )},
+            { label: 'Type', value: (
+              <span style={{ background: cat.bg, color: cat.color, padding: '1px 6px', borderRadius: 4, fontSize: 12, fontWeight: 500 }}>
+                {cat.label}
+              </span>
+            )},
+            { label: 'Task ID', value: (
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}>#{task.id}</span>
+            )},
+            { label: 'Created', value: (
+              <span style={{ fontSize: 13 }}>
+                {new Date(task.created_at).toLocaleDateString('en-IN', {
+                  day: 'numeric', month: 'short', year: 'numeric',
+                })}
+              </span>
+            )},
+            { label: 'Updated', value: (
+              <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{relativeTime(task.created_at)}</span>
+            )},
+            { label: 'Comments', value: (
+              <span style={{ fontSize: 13 }}>{logs.length}</span>
+            )},
+            { label: 'Files', value: (
+              <span style={{ fontSize: 13 }}>{task.media_urls?.length || 0}</span>
+            )},
+          ].map(row => (
+            <div key={row.label} style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '7px 0',
               borderBottom: '1px solid var(--border)',
               fontSize: 13,
-              fontWeight: 600,
-              color: 'var(--text)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexShrink: 0,
             }}>
-              <span>Activity Feed</span>
-              <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--text-light)' }}>{logs.length} updates</span>
+              <span style={{ color: 'var(--text-muted)' }}>{row.label}</span>
+              <span style={{ color: 'var(--text)' }}>{row.value}</span>
             </div>
-
-            <div style={{ padding: '12px 20px', overflowY: 'auto', flex: 1 }}>
-              {logs.length === 0 && (
-                <div style={{
-                  textAlign: 'center',
-                  padding: '40px 16px',
-                  color: 'var(--text-light)',
-                  fontSize: 13,
-                }}>
-                  <div style={{ fontSize: 32, marginBottom: 8 }}>💬</div>
-                  No activity yet
-                </div>
-              )}
-
-              {logGroups.map(group => (
-                <div key={group.date}>
-                  <div style={{
-                    fontSize: 11, fontWeight: 600,
-                    color: 'var(--text-light)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    padding: '12px 0 6px',
-                  }}>
-                    {group.date}
-                  </div>
-
-                  {group.logs.map(log => {
-                    const isStatusChange = log.content.startsWith('Status changed to');
-                    return (
-                      <div key={log.id} style={{
-                        display: 'flex',
-                        gap: 10,
-                        padding: '10px 0',
-                        borderBottom: '1px solid var(--border-light)',
-                      }}>
-                        <div style={{ paddingTop: 5, flexShrink: 0 }}>
-                          <div style={{
-                            width: 8, height: 8, borderRadius: '50%',
-                            background: isStatusChange ? 'var(--primary)' : '#D1D5DB',
-                          }} />
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{
-                            fontSize: 13,
-                            lineHeight: 1.6,
-                            color: isStatusChange ? 'var(--text-muted)' : 'var(--text)',
-                            fontStyle: isStatusChange ? 'italic' : 'normal',
-                            whiteSpace: 'pre-wrap',
-                            wordBreak: 'break-word',
-                          }}>
-                            {log.content}
-                          </p>
-                          <span style={{ fontSize: 11, color: 'var(--text-light)', marginTop: 3, display: 'block' }}>
-                            {formatLogTime(log.created_at)}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-              <div ref={logsEndRef} />
-            </div>
-
-            {/* Inline input at bottom of activity */}
-            <div style={{
-              padding: '12px 16px',
-              borderTop: '1px solid var(--border)',
-              display: 'flex',
-              gap: 8,
-              alignItems: 'center',
-              flexShrink: 0,
-              background: 'var(--bg)',
-            }}>
-              <input
-                type="text"
-                placeholder="Add an update..."
-                value={newLog}
-                onChange={e => setNewLog(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAddLog()}
-                style={{
-                  flex: 1,
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius)',
-                  padding: '9px 12px',
-                  fontSize: 13,
-                  color: 'var(--text)',
-                  background: 'var(--surface)',
-                }}
-              />
-              <button
-                onClick={handleAddLog}
-                disabled={isSubmitting || !newLog.trim()}
-                style={{
-                  background: 'var(--primary)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 'var(--radius)',
-                  padding: '9px 14px',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 5,
-                  opacity: (!newLog.trim() || isSubmitting) ? 0.4 : 1,
-                  cursor: (!newLog.trim() || isSubmitting) ? 'default' : 'pointer',
-                  flexShrink: 0,
-                }}
-              >
-                <Send size={13} />
-              </button>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
