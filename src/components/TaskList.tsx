@@ -3,41 +3,16 @@
 import { useState, useMemo, useEffect } from 'react';
 import TaskCard from './TaskCard';
 import { ClientRequest } from '@/app/actions';
-import { Search, X, Filter } from 'lucide-react';
+import { Search, X, Circle, Clock, CheckCircle2, LayoutList } from 'lucide-react';
 
 const statusFilters = [
-  { id: 'all', label: 'All', icon: '📋' },
-  { id: 'pending', label: 'Pending', icon: '○' },
-  { id: 'in-progress', label: 'In Progress', icon: '⏳' },
-  { id: 'done', label: 'Done', icon: '✓✓' },
+  { id: 'all', label: 'All Tasks', icon: LayoutList },
+  { id: 'pending', label: 'Pending', icon: Circle },
+  { id: 'in-progress', label: 'In Progress', icon: Clock },
+  { id: 'done', label: 'Done', icon: CheckCircle2 },
 ];
 
 const categoryFilters = ['All', 'Bugs', 'Features'];
-
-function groupByDate(tasks: ClientRequest[]) {
-  const groups: { label: string; tasks: ClientRequest[] }[] = [];
-  const today: ClientRequest[] = [];
-  const yesterday: ClientRequest[] = [];
-  const thisWeek: ClientRequest[] = [];
-  const older: ClientRequest[] = [];
-  const now = new Date();
-  const yesterdayDate = new Date(); yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
-
-  tasks.forEach(t => {
-    const d = new Date(t.created_at);
-    if (d.toDateString() === now.toDateString()) today.push(t);
-    else if (d.toDateString() === yesterdayDate.toDateString()) yesterday.push(t);
-    else if (d >= weekAgo) thisWeek.push(t);
-    else older.push(t);
-  });
-
-  if (today.length) groups.push({ label: 'Today', tasks: today });
-  if (yesterday.length) groups.push({ label: 'Yesterday', tasks: yesterday });
-  if (thisWeek.length) groups.push({ label: 'This Week', tasks: thisWeek });
-  if (older.length) groups.push({ label: 'Older', tasks: older });
-  return groups;
-}
 
 export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
   const [statusFilter, setStatusFilter] = useState('all');
@@ -74,6 +49,7 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
       data = data.filter(t =>
         t.content.toLowerCase().includes(q) ||
         `#${t.id}`.includes(q) ||
+        `ping-${t.id}`.includes(q) ||
         t.category.toLowerCase().includes(q)
       );
     }
@@ -85,303 +61,275 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
     });
   }, [tasks, statusFilter, categoryFilter, searchQuery]);
 
-  const groups = groupByDate(filtered);
-
   return (
-    <div style={{ display: 'flex', minHeight: 'calc(100vh - 52px)' }}>
+    <div style={{ display: 'flex', minHeight: 'calc(100vh - 56px)' }}>
       {/* Desktop Sidebar */}
       <aside className="desktop-sidebar" style={{
-        width: 240,
+        width: 220,
         background: 'var(--surface)',
         borderRight: '1px solid var(--border)',
-        padding: '16px 0',
+        padding: '20px 0',
         flexShrink: 0,
+        flexDirection: 'column',
         position: 'sticky',
-        top: 52,
-        height: 'calc(100vh - 52px)',
+        top: 56,
+        height: 'calc(100vh - 56px)',
         overflowY: 'auto',
       }}>
-        <div style={{ padding: '0 16px 12px', fontSize: 11, fontWeight: 600, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          Filter by Status
+        {/* Status filters */}
+        <div style={{ padding: '0 12px 8px' }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</span>
         </div>
-        {statusFilters.map(f => (
-          <button
-            key={f.id}
-            onClick={() => setStatusFilter(f.id)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              width: '100%',
-              padding: '10px 16px',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: 14,
-              background: statusFilter === f.id ? '#E8F5F3' : 'transparent',
-              color: statusFilter === f.id ? 'var(--primary-dark)' : 'var(--text)',
-              fontWeight: statusFilter === f.id ? 600 : 400,
-              borderLeft: statusFilter === f.id ? '3px solid var(--primary)' : '3px solid transparent',
-            }}
-          >
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 13 }}>{f.icon}</span>
-              {f.label}
-            </span>
-            <span style={{
-              fontSize: 12,
-              color: statusFilter === f.id ? 'var(--primary)' : 'var(--text-light)',
-              background: statusFilter === f.id ? 'rgba(18,140,126,0.1)' : 'var(--bg)',
-              padding: '2px 8px',
-              borderRadius: 10,
-              fontWeight: 600,
-            }}>
-              {statusCounts[f.id as keyof typeof statusCounts]}
-            </span>
-          </button>
-        ))}
+        {statusFilters.map(f => {
+          const Icon = f.icon;
+          const isActive = statusFilter === f.id;
+          const count = statusCounts[f.id as keyof typeof statusCounts];
+          return (
+            <button
+              key={f.id}
+              onClick={() => setStatusFilter(f.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                padding: '8px 12px',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 13,
+                background: isActive ? 'var(--primary-subtle)' : 'transparent',
+                color: isActive ? 'var(--primary-dark)' : 'var(--text-secondary)',
+                fontWeight: isActive ? 600 : 400,
+                borderRadius: 0,
+                borderLeft: isActive ? '2px solid var(--primary)' : '2px solid transparent',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Icon size={15} />
+                {f.label}
+              </span>
+              <span style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: isActive ? 'var(--primary)' : 'var(--text-light)',
+                minWidth: 20,
+                textAlign: 'right',
+              }}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
 
-        <div style={{ padding: '20px 16px 12px', fontSize: 11, fontWeight: 600, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          Category
+        <div style={{ height: 1, background: 'var(--border)', margin: '16px 12px' }} />
+
+        {/* Category filters */}
+        <div style={{ padding: '0 12px 8px' }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Category</span>
         </div>
-        {categoryFilters.map(f => (
-          <button
-            key={f}
-            onClick={() => setCategoryFilter(f)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              width: '100%',
-              padding: '10px 16px',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: 14,
-              background: categoryFilter === f ? '#E8F5F3' : 'transparent',
-              color: categoryFilter === f ? 'var(--primary-dark)' : 'var(--text)',
-              fontWeight: categoryFilter === f ? 600 : 400,
-              borderLeft: categoryFilter === f ? '3px solid var(--primary)' : '3px solid transparent',
-              gap: 8,
-            }}
-          >
-            {f === 'Bugs' && '🐛'}{f === 'Features' && '✨'}{f === 'All' && '📂'} {f}
-          </button>
-        ))}
+        {categoryFilters.map(f => {
+          const isActive = categoryFilter === f;
+          return (
+            <button
+              key={f}
+              onClick={() => setCategoryFilter(f)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                width: '100%',
+                padding: '8px 12px',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 13,
+                background: isActive ? 'var(--primary-subtle)' : 'transparent',
+                color: isActive ? 'var(--primary-dark)' : 'var(--text-secondary)',
+                fontWeight: isActive ? 600 : 400,
+                borderLeft: isActive ? '2px solid var(--primary)' : '2px solid transparent',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {f === 'Bugs' && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', flexShrink: 0 }} />}
+              {f === 'Features' && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#6366F1', flexShrink: 0 }} />}
+              {f === 'All' && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#9CA3AF', flexShrink: 0 }} />}
+              {f}
+            </button>
+          );
+        })}
       </aside>
 
       {/* Main Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Search Bar */}
+        {/* Search + Mobile Filters */}
         <div style={{
-          padding: '8px 12px',
-          background: 'var(--primary-dark)',
+          padding: '12px 16px',
+          background: 'var(--surface)',
+          borderBottom: '1px solid var(--border)',
           position: 'sticky',
-          top: 52,
+          top: 56,
           zIndex: 25,
         }}>
+          {/* Search */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: 8,
-            background: '#fff',
-            borderRadius: 8,
+            background: 'var(--bg)',
+            borderRadius: 'var(--radius)',
             padding: '8px 12px',
+            border: '1px solid var(--border)',
             maxWidth: 600,
           }}>
-            <Search size={16} color="#8696A0" />
+            <Search size={15} color="var(--text-light)" />
             <input
               type="text"
-              placeholder="Search tasks by name, #id, or category..."
+              placeholder="Search tasks..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               style={{
                 flex: 1,
                 border: 'none',
-                fontSize: 14,
+                fontSize: 13,
                 color: 'var(--text)',
                 background: 'transparent',
               }}
             />
             {searchQuery && (
               <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 2 }}>
-                <X size={16} color="#8696A0" />
+                <X size={14} color="var(--text-light)" />
               </button>
             )}
           </div>
+
+          {/* Mobile filter chips */}
+          <div className="mobile-filters hide-scrollbar" style={{
+            gap: 6,
+            overflowX: 'auto',
+            marginTop: 10,
+            paddingBottom: 2,
+          }}>
+            {statusFilters.map(f => {
+              const isActive = statusFilter === f.id;
+              const count = statusCounts[f.id as keyof typeof statusCounts];
+              return (
+                <button
+                  key={f.id}
+                  onClick={() => setStatusFilter(f.id)}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: 20,
+                    fontSize: 12,
+                    fontWeight: 500,
+                    whiteSpace: 'nowrap',
+                    cursor: 'pointer',
+                    border: isActive ? '1px solid var(--primary)' : '1px solid var(--border)',
+                    background: isActive ? 'var(--primary-subtle)' : 'var(--surface)',
+                    color: isActive ? 'var(--primary-dark)' : 'var(--text-muted)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    flexShrink: 0,
+                  }}
+                >
+                  {f.label}
+                  <span style={{ fontSize: 11, opacity: 0.7 }}>{count}</span>
+                </button>
+              );
+            })}
+            <div style={{ width: 1, background: 'var(--border)', margin: '0 2px', flexShrink: 0, alignSelf: 'stretch' }} />
+            {categoryFilters.filter(f => f !== 'All').map(f => (
+              <button
+                key={f}
+                onClick={() => setCategoryFilter(categoryFilter === f ? 'All' : f)}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: 20,
+                  fontSize: 12,
+                  fontWeight: 500,
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer',
+                  border: categoryFilter === f
+                    ? `1px solid ${f === 'Bugs' ? '#EF4444' : '#6366F1'}`
+                    : '1px solid var(--border)',
+                  background: categoryFilter === f
+                    ? (f === 'Bugs' ? '#FEF2F2' : '#EEF2FF')
+                    : 'var(--surface)',
+                  color: categoryFilter === f
+                    ? (f === 'Bugs' ? '#DC2626' : '#4F46E5')
+                    : 'var(--text-muted)',
+                  flexShrink: 0,
+                }}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Mobile Status Tabs */}
-        <div className="mobile-tabs hide-scrollbar" style={{
-          display: 'flex',
-          gap: 6,
-          overflowX: 'auto',
-          padding: '10px 12px',
-          background: 'var(--bg)',
-          position: 'sticky',
-          top: 96,
-          zIndex: 20,
-        }}>
-          {statusFilters.map(f => (
-            <button
-              key={f.id}
-              onClick={() => setStatusFilter(f.id)}
-              style={{
-                padding: '6px 14px',
-                borderRadius: 20,
-                fontSize: 13,
-                fontWeight: 500,
-                whiteSpace: 'nowrap',
-                cursor: 'pointer',
-                border: statusFilter === f.id ? 'none' : '1px solid var(--border)',
-                background: statusFilter === f.id ? 'var(--primary)' : 'var(--surface)',
-                color: statusFilter === f.id ? '#fff' : 'var(--text-muted)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              {f.icon} {f.label}
-              <span style={{
-                fontSize: 11,
-                fontWeight: 700,
-                marginLeft: 2,
-                opacity: 0.8,
-              }}>
-                {statusCounts[f.id as keyof typeof statusCounts]}
-              </span>
-            </button>
-          ))}
-
-          <div style={{ width: 1, background: 'var(--border)', margin: '0 4px', flexShrink: 0 }} />
-
-          {categoryFilters.filter(f => f !== 'All').map(f => (
-            <button
-              key={f}
-              onClick={() => setCategoryFilter(categoryFilter === f ? 'All' : f)}
-              style={{
-                padding: '6px 14px',
-                borderRadius: 20,
-                fontSize: 13,
-                fontWeight: 500,
-                whiteSpace: 'nowrap',
-                cursor: 'pointer',
-                border: categoryFilter === f ? 'none' : '1px solid var(--border)',
-                background: categoryFilter === f
-                  ? (f === 'Bugs' ? '#FEE2E2' : '#D1FAE5')
-                  : 'var(--surface)',
-                color: categoryFilter === f
-                  ? (f === 'Bugs' ? '#DC2626' : '#059669')
-                  : 'var(--text-muted)',
-              }}
-            >
-              {f === 'Bugs' ? '🐛' : '✨'} {f}
-            </button>
-          ))}
-        </div>
-
-        {/* Task Cards */}
-        <div style={{ padding: '8px 12px 100px', maxWidth: 800, margin: '0 auto' }}>
-          {/* Active filter indicator */}
-          {(statusFilter !== 'all' || categoryFilter !== 'All') && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '8px 0',
-              flexWrap: 'wrap',
-            }}>
-              <Filter size={13} color="var(--text-light)" />
-              <span style={{ fontSize: 12, color: 'var(--text-light)' }}>Showing:</span>
-              {statusFilter !== 'all' && (
-                <span style={{
-                  fontSize: 12,
-                  padding: '2px 10px',
-                  borderRadius: 12,
-                  background: 'var(--primary)',
-                  color: '#fff',
-                  fontWeight: 500,
-                }}>
-                  {statusFilters.find(f => f.id === statusFilter)?.label}
-                </span>
-              )}
-              {categoryFilter !== 'All' && (
-                <span style={{
-                  fontSize: 12,
-                  padding: '2px 10px',
-                  borderRadius: 12,
-                  background: categoryFilter === 'Bugs' ? '#FEE2E2' : '#D1FAE5',
-                  color: categoryFilter === 'Bugs' ? '#DC2626' : '#059669',
-                  fontWeight: 500,
-                }}>
-                  {categoryFilter}
-                </span>
-              )}
+        {/* Task list */}
+        <div style={{ padding: '16px', maxWidth: 720, margin: '0 auto' }}>
+          {/* Results count */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 12,
+            padding: '0 2px',
+          }}>
+            <span style={{ fontSize: 12, color: 'var(--text-light)' }}>
+              {filtered.length} {filtered.length === 1 ? 'task' : 'tasks'}
+              {statusFilter !== 'all' && ` · ${statusFilters.find(f => f.id === statusFilter)?.label}`}
+              {categoryFilter !== 'All' && ` · ${categoryFilter}`}
+            </span>
+            {(statusFilter !== 'all' || categoryFilter !== 'All') && (
               <button
                 onClick={() => { setStatusFilter('all'); setCategoryFilter('All'); }}
                 style={{
                   fontSize: 12,
-                  color: 'var(--text-light)',
+                  color: 'var(--primary)',
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  textDecoration: 'underline',
+                  fontWeight: 500,
                 }}
               >
-                Clear all
+                Clear filters
               </button>
-            </div>
-          )}
+            )}
+          </div>
 
+          {/* Empty state */}
           {filtered.length === 0 && (
             <div style={{
               textAlign: 'center',
               padding: '60px 20px',
               color: 'var(--text-muted)',
             }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>
-                {searchQuery ? '🔍' : statusFilter === 'done' ? '🎉' : '☕'}
+              <div style={{
+                width: 64, height: 64, borderRadius: 16,
+                background: 'var(--bg)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 16px',
+                fontSize: 28,
+              }}>
+                {searchQuery ? '🔍' : '✨'}
               </div>
-              <p style={{ fontSize: 15, fontWeight: 500 }}>
-                {searchQuery ? 'No tasks match your search' : statusFilter === 'done' ? 'No completed tasks yet' : 'No tasks found'}
+              <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-secondary)' }}>
+                {searchQuery ? 'No matching tasks' : 'No tasks here'}
               </p>
               <p style={{ fontSize: 13, marginTop: 4, color: 'var(--text-light)' }}>
-                {searchQuery ? 'Try a different keyword' : 'All clear for now!'}
+                {searchQuery ? 'Try a different search term' : 'All clear!'}
               </p>
             </div>
           )}
 
-          {groups.map(group => (
-            <div key={group.label} style={{ marginBottom: 16 }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '8px 4px',
-              }}>
-                <span style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}>
-                  {group.label}
-                </span>
-                <span style={{
-                  fontSize: 11,
-                  color: 'var(--text-light)',
-                  background: 'var(--border)',
-                  padding: '1px 8px',
-                  borderRadius: 10,
-                }}>
-                  {group.tasks.length}
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {group.tasks.map(t => (
-                  <TaskCard key={t.id} task={t} lastViewed={lastViewed[t.id]} />
-                ))}
-              </div>
-            </div>
-          ))}
+          {/* Cards */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {filtered.map(t => (
+              <TaskCard key={t.id} task={t} lastViewed={lastViewed[t.id]} />
+            ))}
+          </div>
         </div>
       </div>
     </div>
