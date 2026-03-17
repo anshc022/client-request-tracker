@@ -15,11 +15,12 @@ export default function StatusSheet({ taskId, currentStatus, onStatusChanged }: 
   const [toast, setToast] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const statuses = ['Pending', 'In Progress', 'Done'];
-  const tag = statusTag(currentStatus);
+  const statuses = ['To Do', 'In Progress', 'Done'];
+  const displayStatus = currentStatus === 'Pending' ? 'To Do' : currentStatus;
+  const tag = statusTag(displayStatus);
 
   const handleSelect = async (status: string) => {
-    if (status === currentStatus) { setOpen(false); return; }
+    if (status === displayStatus) { setOpen(false); return; }
     setLoading(true);
     try {
       await updateStatus(taskId, status);
@@ -52,7 +53,7 @@ export default function StatusSheet({ taskId, currentStatus, onStatusChanged }: 
           lineHeight: '20px',
         }}
       >
-        {currentStatus}
+        {displayStatus}
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
       </button>
 
@@ -78,7 +79,7 @@ export default function StatusSheet({ taskId, currentStatus, onStatusChanged }: 
             </div>
             {statuses.map(s => {
               const sTag = statusTag(s);
-              const isActive = s === currentStatus;
+              const isActive = s === displayStatus;
               return (
                 <button
                   key={s}

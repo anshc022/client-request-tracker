@@ -6,7 +6,7 @@ import { ClientRequest } from '@/app/actions';
 
 const statusFilters = [
   { id: 'all', label: 'All' },
-  { id: 'pending', label: 'Pending' },
+  { id: 'todo', label: 'To Do' },
   { id: 'in-progress', label: 'In Progress' },
   { id: 'done', label: 'Done' },
 ];
@@ -15,6 +15,7 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [lastViewed, setLastViewed] = useState<Record<number, number>>({});
 
   useEffect(() => {
@@ -26,14 +27,14 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
 
   const statusCounts = useMemo(() => ({
     all: tasks.length,
-    pending: tasks.filter(t => t.status === 'Pending').length,
+    todo: tasks.filter(t => t.status === 'Pending' || t.status === 'To Do').length,
     'in-progress': tasks.filter(t => t.status === 'In Progress').length,
     done: tasks.filter(t => t.status === 'Done').length,
   }), [tasks]);
 
   const filtered = useMemo(() => {
     let data = [...tasks];
-    if (statusFilter === 'pending') data = data.filter(t => t.status === 'Pending');
+    if (statusFilter === 'todo') data = data.filter(t => t.status === 'Pending' || t.status === 'To Do');
     else if (statusFilter === 'in-progress') data = data.filter(t => t.status === 'In Progress');
     else if (statusFilter === 'done') data = data.filter(t => t.status === 'Done');
     if (categoryFilter === 'Bugs') data = data.filter(t => t.category === 'Bug');
@@ -171,28 +172,69 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
             }}>✕</button>
           )}
         </div>
+
+        {/* View Toggle */}
+        <div style={{ display: 'flex', gap: 4, marginLeft: 8 }}>
+          <button
+            onClick={() => setViewMode('list')}
+            style={{
+              padding: '4px 6px',
+              border: 'none',
+              background: viewMode === 'list' ? 'var(--bg-active)' : 'transparent',
+              color: viewMode === 'list' ? 'var(--text)' : 'var(--text-muted)',
+              borderRadius: 4,
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+            title="List View"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+          </button>
+          <button
+            onClick={() => setViewMode('grid')}
+            style={{
+              padding: '4px 6px',
+              border: 'none',
+              background: viewMode === 'grid' ? 'var(--bg-active)' : 'transparent',
+              color: viewMode === 'grid' ? 'var(--text)' : 'var(--text-muted)',
+              borderRadius: 4,
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+            title="Grid View"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          </button>
+        </div>
       </div>
 
-      {/* Table header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: '6px 12px 6px 48px',
-        fontSize: 12,
-        fontWeight: 500,
-        color: 'var(--text-muted)',
-        borderBottom: '1px solid var(--border)',
-        background: 'var(--bg-secondary)',
-        gap: 8,
-      }}>
-        <div style={{ width: 80, flexShrink: 0 }}>Status</div>
-        <div style={{ flex: 1 }}>Title</div>
-        <div style={{ width: 70, textAlign: 'center', flexShrink: 0 }}>Type</div>
-        <div style={{ width: 40, textAlign: 'right', flexShrink: 0 }}>ID</div>
-      </div>
+      {/* Table header (List view only) */}
+      {viewMode === 'list' && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '6px 12px 6px 48px',
+          fontSize: 12,
+          fontWeight: 500,
+          color: 'var(--text-muted)',
+          borderBottom: '1px solid var(--border)',
+          background: 'var(--bg-secondary)',
+          gap: 8,
+        }}>
+          <div style={{ width: 80, flexShrink: 0 }}>Status</div>
+          <div style={{ flex: 1 }}>Title</div>
+          <div style={{ width: 70, textAlign: 'center', flexShrink: 0 }}>Type</div>
+          <div style={{ width: 40, textAlign: 'right', flexShrink: 0 }}>ID</div>
+        </div>
+      )}
 
       {/* Task rows */}
-      <div style={{ padding: '0 36px' }}>
+      <div style={{
+        padding: viewMode === 'grid' ? '16px 36px' : '0 36px',
+        display: viewMode === 'grid' ? 'grid' : 'block',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+        gap: viewMode === 'grid' ? '16px' : '0',
+      }}>
         {filtered.length === 0 && (
           <div style={{
             padding: '48px 20px',
@@ -204,7 +246,7 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
           </div>
         )}
         {filtered.map(t => (
-          <TaskCard key={t.id} task={t} lastViewed={lastViewed[t.id]} />
+          <TaskCard key={t.id} task={t} lastViewed={lastViewed[t.id]} viewMode={viewMode} />
         ))}
       </div>
 

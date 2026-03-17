@@ -25,6 +25,6 @@ export function statusTag(status: string): { bg: string; color: string; label: s
   switch (status) {
     case 'Done': return { bg: 'var(--tag-green)', color: 'var(--tag-green-text)', label: 'Done' };
     case 'In Progress': return { bg: 'var(--tag-yellow)', color: 'var(--tag-yellow-text)', label: 'In Progress' };
-    default: return { bg: 'var(--tag-gray)', color: 'var(--tag-gray-text)', label: 'Pending' };
+    default: return { bg: 'var(--tag-gray)', color: 'var(--tag-gray-text)', label: 'To Do' };
   }
 }
