@@ -3,6 +3,7 @@ import { getRequests } from './actions';
 import TaskList from '@/components/TaskList';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function HomePage() {
   const tasks = await getRequests();
@@ -10,7 +11,6 @@ export default async function HomePage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Notion-style top bar */}
       <header style={{
         height: 45,
         padding: '0 12px',
