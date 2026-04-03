@@ -5,20 +5,19 @@ import TaskCard from './TaskCard';
 import { ClientRequest } from '@/app/actions';
 
 const statusFilters = [
-  { id: 'all', label: 'All', emoji: '📋' },
-  { id: 'todo', label: 'To Do', emoji: '⏳' },
-  { id: 'in-progress', label: 'In Progress', emoji: '⚙️' },
-  { id: 'urgent', label: 'Urgent', emoji: '🚨' },
-  { id: 'done', label: 'Done', emoji: '✅' },
+  { id: 'all', label: 'All' },
+  { id: 'todo', label: 'To Do' },
+  { id: 'in-progress', label: 'In Progress' },
+  { id: 'urgent', label: 'Urgent' },
+  { id: 'done', label: 'Done' },
 ];
 
 export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'list' | 'grid' | 'kanban'>('grid');
+  const [viewMode, setViewMode] = useState<'list' | 'grid' | 'kanban'>('list');
   const [lastViewed, setLastViewed] = useState<Record<number, number>>({});
-  const [sortBy, setSortBy] = useState<'recent' | 'priority' | 'category'>('recent');
 
   useEffect(() => {
     try {
@@ -52,151 +51,103 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
       );
     }
     
-    // Enhanced sorting
     return data.sort((a, b) => {
-      if (sortBy === 'priority') {
-        const priority = { 'Urgent': 3, 'In Progress': 2, 'Pending': 1, 'Done': 0 };
-        return (priority[b.status as keyof typeof priority] || 0) - (priority[a.status as keyof typeof priority] || 0);
-      }
-      if (sortBy === 'category') {
-        return a.category.localeCompare(b.category);
-      }
-      // Default: recent
       if (a.status === 'Done' && b.status !== 'Done') return 1;
       if (a.status !== 'Done' && b.status === 'Done') return -1;
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
-  }, [tasks, statusFilter, categoryFilter, searchQuery, sortBy]);
+  }, [tasks, statusFilter, categoryFilter, searchQuery]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-6">
-      {/* Modern header section */}
-      <div className="py-8 md:py-12">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-900 via-blue-800 to-slate-900 dark:from-white dark:via-blue-200 dark:to-white bg-clip-text text-transparent mb-4">
-            Task Management Center
+    <div className="max-w-5xl mx-auto">
+      {/* Notion-style page header */}
+      <div className="px-6 py-8">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-black dark:text-white mb-2">
+            Tasks
           </h1>
-          <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-            Track client requests, bugs, and feature requests with modern workflow tools
+          <p className="text-gray-500 dark:text-gray-400">
+            {tasks.length} total
           </p>
         </div>
-      </div>
 
-      {/* Enhanced filter toolbar */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 mb-8">
-        <div className="p-4 md:p-6">
-          {/* Status filter tabs */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {statusFilters.map(f => {
-              const isActive = statusFilter === f.id;
-              const count = statusCounts[f.id as keyof typeof statusCounts];
-              return (
-                <button
-                  key={f.id}
-                  onClick={() => setStatusFilter(f.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all transform hover:scale-105 ${
-                    isActive
-                      ? 'bg-blue-500 text-white shadow-lg'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  <span>{f.emoji}</span>
-                  {f.label}
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    isActive ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700'
-                  }`}>
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
+        {/* Filter tabs - Notion style */}
+        <div className="flex flex-wrap gap-1 mb-6">
+          {statusFilters.map(f => {
+            const isActive = statusFilter === f.id;
+            const count = statusCounts[f.id as keyof typeof statusCounts];
+            return (
+              <button
+                key={f.id}
+                onClick={() => setStatusFilter(f.id)}
+                className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
+                  isActive
+                    ? 'bg-black text-white dark:bg-white dark:text-black'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+              >
+                {f.label} {count}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Simple search and controls */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex gap-4">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="px-3 py-2 border border-gray-200 dark:border-gray-800 rounded bg-white dark:bg-gray-900 text-black dark:text-white placeholder-gray-500 focus:outline-none focus:border-black dark:focus:border-white"
+            />
+            
+            {['All', 'Bugs', 'Features'].map(f => (
+              <button
+                key={f}
+                onClick={() => setCategoryFilter(f)}
+                className={`px-2 py-1 text-sm rounded ${
+                  categoryFilter === f
+                    ? 'bg-gray-200 dark:bg-gray-800 text-black dark:text-white'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                }`}
+              >
+                {f}
+              </button>
+            ))}
           </div>
 
-          {/* Search and filters row */}
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            {/* Search bar */}
-            <div className="relative flex-1 max-w-md">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Search tasks..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Category filters */}
-            <div className="flex gap-2">
-              {['All', 'Bugs', 'Features'].map(f => (
-                <button
-                  key={f}
-                  onClick={() => setCategoryFilter(f)}
-                  className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                    categoryFilter === f
-                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
-
-            {/* View mode toggles */}
-            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
-              {[
-                { mode: 'grid', icon: '⊞', title: 'Grid View' },
-                { mode: 'list', icon: '☰', title: 'List View' },
-                { mode: 'kanban', icon: '⚏', title: 'Kanban View' }
-              ].map(({ mode, icon, title }) => (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode as any)}
-                  title={title}
-                  className={`p-2 text-sm rounded transition-colors ${
-                    viewMode === mode
-                      ? 'bg-white dark:bg-slate-700 shadow text-blue-600 dark:text-blue-400'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  {icon}
-                </button>
-              ))}
-            </div>
-
-            {/* Sort dropdown */}
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value as any)}
-              className="px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="recent">Recent First</option>
-              <option value="priority">By Priority</option>
-              <option value="category">By Category</option>
-            </select>
+          <div className="flex gap-1">
+            {[
+              { mode: 'list', label: 'List' },
+              { mode: 'grid', label: 'Grid' },
+              { mode: 'kanban', label: 'Board' }
+            ].map(({ mode, label }) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode as any)}
+                className={`px-2 py-1 text-sm rounded ${
+                  viewMode === mode
+                    ? 'bg-gray-200 dark:bg-gray-800 text-black dark:text-white'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
-      {/* Task display area */}
-      <div className="mb-8">
+      {/* Task display */}
+      <div className="px-6">
         {filtered.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">📝</div>
-            <h3 className="text-xl font-medium text-slate-900 dark:text-white mb-2">
-              {searchQuery ? 'No matching tasks' : 'No tasks found'}
-            </h3>
-            <p className="text-slate-600 dark:text-slate-400">
-              {searchQuery ? 'Try adjusting your search criteria.' : 'Tasks will appear here when created.'}
-            </p>
+          <div className="text-center py-16 text-gray-500 dark:text-gray-400">
+            {searchQuery ? 'No matching tasks' : 'No tasks'}
           </div>
         ) : viewMode === 'kanban' ? (
-          // Kanban Board View
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          // Kanban Board
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {statusFilters.slice(1).map(status => {
               const statusTasks = filtered.filter(t => {
                 if (status.id === 'todo') return t.status === 'Pending' || t.status === 'To Do';
@@ -207,11 +158,10 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
               });
               
               return (
-                <div key={status.id} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-lg">{status.emoji}</span>
-                    <h3 className="font-medium text-slate-900 dark:text-white">{status.label}</h3>
-                    <span className="px-2 py-1 text-xs bg-slate-200 dark:bg-slate-700 rounded-full">
+                <div key={status.id} className="bg-gray-50 dark:bg-gray-800 rounded p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-medium text-black dark:text-white">{status.label}</h3>
+                    <span className="text-xs text-gray-500 bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">
                       {statusTasks.length}
                     </span>
                   </div>
@@ -226,57 +176,52 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
           </div>
         ) : viewMode === 'grid' ? (
           // Grid View
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map(task => (
               <TaskCard key={task.id} task={task} lastViewed={lastViewed[task.id]} viewMode="grid" />
             ))}
           </div>
         ) : (
-          // List View
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-            <div className="px-6 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-              <div className="grid grid-cols-12 gap-4 text-sm font-medium text-slate-600 dark:text-slate-400">
+          // List View (default - Notion table style)
+          <div className="border border-gray-200 dark:border-gray-800 rounded">
+            <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
+              <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-1">Status</div>
                 <div className="col-span-6">Task</div>
-                <div className="col-span-2">Category</div>
+                <div className="col-span-2">Type</div>
                 <div className="col-span-2">Created</div>
                 <div className="col-span-1">ID</div>
               </div>
             </div>
-            <div className="divide-y divide-slate-200 dark:divide-slate-700">
+            <div className="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-900">
               {filtered.map(task => (
                 <TaskCard key={task.id} task={task} lastViewed={lastViewed[task.id]} viewMode="list" />
               ))}
             </div>
           </div>
         )}
-      </div>
 
-      {/* Results summary */}
-      {filtered.length > 0 && (
-        <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 rounded-lg px-4 py-3 border border-slate-200 dark:border-slate-700">
-          <span>
-            Showing {filtered.length} of {tasks.length} tasks
-            {(statusFilter !== 'all' || categoryFilter !== 'All' || searchQuery) && (
-              <button
-                onClick={() => { 
-                  setStatusFilter('all'); 
-                  setCategoryFilter('All'); 
-                  setSearchQuery(''); 
-                }}
-                className="ml-2 text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                Clear all filters
-              </button>
-            )}
-          </span>
-          <div className="flex items-center gap-4">
-            <span className="text-xs text-slate-500">
-              Last updated: {new Date().toLocaleTimeString()}
+        {/* Results count */}
+        {filtered.length > 0 && (
+          <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-800 text-sm text-gray-500 dark:text-gray-400">
+            <span>
+              {filtered.length} of {tasks.length}
+              {(statusFilter !== 'all' || categoryFilter !== 'All' || searchQuery) && (
+                <button
+                  onClick={() => { 
+                    setStatusFilter('all'); 
+                    setCategoryFilter('All'); 
+                    setSearchQuery(''); 
+                  }}
+                  className="ml-2 text-black dark:text-white hover:underline"
+                >
+                  Clear filters
+                </button>
+              )}
             </span>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

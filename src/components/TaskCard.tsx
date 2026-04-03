@@ -9,7 +9,7 @@ import { useState } from 'react';
 export default function TaskCard({ 
   task, 
   lastViewed, 
-  viewMode = 'grid' 
+  viewMode = 'list' 
 }: { 
   task: ClientRequest; 
   lastViewed?: number; 
@@ -17,79 +17,45 @@ export default function TaskCard({
 }) {
   const [status, setStatus] = useState(task.status);
   const hasMedia = task.media_urls && task.media_urls.length > 0;
-  const cat = categoryTag(task.category);
-  const st = statusTag(status);
   const firstLine = task.content.split('\n')[0];
   const truncated = firstLine.length > 120 ? firstLine.substring(0, 120) + '…' : firstLine;
   const createdDate = new Date(task.created_at);
   const isNew = lastViewed && createdDate.getTime() > lastViewed;
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Done': return '✅';
-      case 'In Progress': return '⚙️';
-      case 'Urgent': return '🚨';
-      case 'Pending': case 'To Do': return '⏳';
-      default: return '📋';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Done': return 'text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400';
-      case 'In Progress': return 'text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400';
-      case 'Urgent': return 'text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400 animate-pulse';
-      case 'Pending': case 'To Do': return 'text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400';
-      default: return 'text-slate-600 bg-slate-100 dark:bg-slate-800 dark:text-slate-400';
-    }
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'Bug': return 'text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400';
-      case 'Feature': case 'New Feature': return 'text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400';
-      default: return 'text-slate-600 bg-slate-100 dark:bg-slate-800 dark:text-slate-400';
-    }
-  };
-
   if (viewMode === 'list') {
     return (
-      <Link href={`/task/${task.id}`} className="block hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-        <div className="grid grid-cols-12 gap-4 items-center px-6 py-4">
+      <Link href={`/task/${task.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-800">
+        <div className="grid grid-cols-12 gap-4 items-center px-4 py-3">
           <div className="col-span-1">
-            <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(status)}`}>
-              <span>{getStatusIcon(status)}</span>
-              <span className="hidden sm:inline">{status}</span>
+            <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded">
+              {status}
             </span>
           </div>
           <div className="col-span-6">
-            <div className="flex items-start gap-3">
-              {isNew && (
-                <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></span>
-              )}
+            <div className="flex items-start gap-2">
+              {isNew && <div className="w-2 h-2 bg-black dark:bg-white rounded-full flex-shrink-0 mt-2"></div>}
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-slate-900 dark:text-white line-clamp-2">
+                <p className="text-sm text-black dark:text-white">
                   {truncated}
                 </p>
                 {hasMedia && (
-                  <div className="flex items-center gap-1 mt-1">
-                    <span className="text-xs text-slate-500">📎</span>
-                    <span className="text-xs text-slate-500">{task.media_urls?.length} attachments</span>
-                  </div>
+                  <span className="text-xs text-gray-500">
+                    {task.media_urls?.length} files
+                  </span>
                 )}
               </div>
             </div>
           </div>
           <div className="col-span-2">
-            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getCategoryColor(task.category)}`}>
+            <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded">
               {task.category}
             </span>
           </div>
-          <div className="col-span-2 text-xs text-slate-500 dark:text-slate-400">
+          <div className="col-span-2 text-xs text-gray-500 dark:text-gray-400">
             {createdDate.toLocaleDateString()}
           </div>
           <div className="col-span-1 text-right">
-            <span className="text-xs font-mono text-slate-500 dark:text-slate-400">#{task.id}</span>
+            <span className="text-xs text-gray-400">#{task.id}</span>
           </div>
         </div>
       </Link>
@@ -99,22 +65,22 @@ export default function TaskCard({
   if (viewMode === 'kanban') {
     return (
       <Link href={`/task/${task.id}`} className="block">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 hover:shadow-md transition-all transform hover:scale-[1.02]">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded p-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
           <div className="flex items-start justify-between mb-2">
-            <span className={`px-2 py-1 text-xs font-medium rounded ${getCategoryColor(task.category)}`}>
+            <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded">
               {task.category}
             </span>
-            <span className="text-xs font-mono text-slate-400">#{task.id}</span>
+            <span className="text-xs text-gray-400">#{task.id}</span>
           </div>
-          <p className="text-sm font-medium text-slate-900 dark:text-white mb-2 line-clamp-3">
+          <p className="text-sm text-black dark:text-white mb-2">
             {firstLine}
           </p>
-          <div className="flex items-center justify-between text-xs text-slate-500">
+          <div className="flex items-center justify-between text-xs text-gray-500">
             <span>{createdDate.toLocaleDateString()}</span>
-            {hasMedia && <span>📎 {task.media_urls?.length}</span>}
+            {hasMedia && <span>{task.media_urls?.length} files</span>}
           </div>
           {isNew && (
-            <div className="w-full h-0.5 bg-blue-500 rounded-full mt-2"></div>
+            <div className="w-full h-0.5 bg-black dark:bg-white mt-2"></div>
           )}
         </div>
       </Link>
@@ -123,45 +89,40 @@ export default function TaskCard({
 
   // Grid view (default)
   return (
-    <Link href={`/task/${task.id}`} className="block group">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-6 hover:shadow-lg transition-all transform group-hover:scale-[1.02] group-hover:border-blue-300 dark:group-hover:border-blue-600 h-full flex flex-col">
+    <Link href={`/task/${task.id}`} className="block">
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors h-full flex flex-col">
         {/* Header */}
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
-            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getCategoryColor(task.category)}`}>
+            <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded">
               {task.category}
             </span>
             {isNew && (
-              <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+              <div className="w-2 h-2 bg-black dark:bg-white rounded-full"></div>
             )}
           </div>
-          <span className="text-xs font-mono text-slate-400">#{task.id}</span>
+          <span className="text-xs text-gray-400">#{task.id}</span>
         </div>
 
         {/* Content */}
-        <div className="flex-1 mb-4">
-          <h3 className="text-sm font-medium text-slate-900 dark:text-white mb-2 line-clamp-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+        <div className="flex-1 mb-3">
+          <h3 className="text-sm font-medium text-black dark:text-white mb-2">
             {firstLine}
           </h3>
           {task.content.split('\n').length > 1 && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-              {task.content.split('\n').slice(1, 3).join(' ').substring(0, 100)}...
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {task.content.split('\n').slice(1, 2).join(' ').substring(0, 80)}...
             </p>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
-          <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(status)}`}>
-            <span>{getStatusIcon(status)}</span>
-            <span>{status}</span>
+        <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-800">
+          <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded">
+            {status}
           </span>
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            {hasMedia && (
-              <span className="flex items-center gap-1">
-                📎 {task.media_urls?.length}
-              </span>
-            )}
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            {hasMedia && <span>{task.media_urls?.length} files</span>}
             <span>{createdDate.toLocaleDateString()}</span>
           </div>
         </div>
