@@ -152,7 +152,7 @@ export default function TaskCard({
               whiteSpace: 'nowrap',
               display: 'inline-block'
             }}>
-              {createdDate.getDate()}/{createdDate.getMonth() + 1}
+              {createdDate.getDate()}/{createdDate.toLocaleDateString('en-GB', { month: 'short' })}
             </span>
           </div>
           
@@ -211,7 +211,7 @@ export default function TaskCard({
             {truncated}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
-            <span>{createdDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
+            <span>{createdDate.getDate()}/{createdDate.toLocaleDateString('en-GB', { month: 'short' })}</span>
             {hasMedia && <span>{task.media_urls?.length} files</span>}
           </div>
           {isNew && (
@@ -294,7 +294,7 @@ export default function TaskCard({
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
             {hasMedia && <span>{task.media_urls?.length} files</span>}
-            <span>{createdDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
+            <span>{createdDate.getDate()}/{createdDate.toLocaleDateString('en-GB', { month: 'short' })}</span>
           </div>
         </div>
       </div>
