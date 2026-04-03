@@ -22,6 +22,27 @@ export default function TaskCard({
   const createdDate = new Date(task.created_at);
   const isNew = lastViewed && createdDate.getTime() > lastViewed;
 
+  // Status color mapping
+  const getStatusStyle = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+      case 'to do':
+        return { bg: 'var(--tag-yellow)', color: 'var(--tag-yellow-text)' };
+      case 'in progress':
+        return { bg: 'var(--tag-blue)', color: 'var(--tag-blue-text)' };
+      case 'urgent':
+        return { bg: 'var(--tag-red)', color: 'var(--tag-red-text)' };
+      case 'done':
+        return { bg: 'var(--tag-green)', color: 'var(--tag-green-text)' };
+      case 'approved':
+        return { bg: 'var(--tag-purple)', color: 'var(--tag-purple-text)' };
+      default:
+        return { bg: 'var(--tag-gray)', color: 'var(--tag-gray-text)' };
+    }
+  };
+
+  const statusStyle = getStatusStyle(status);
+
   if (viewMode === 'list') {
     return (
       <Link href={`/task/${task.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -42,12 +63,17 @@ export default function TaskCard({
             textAlign: 'left'
           }}>
             <span style={{
-              fontSize: '10px',
-              color: 'var(--text-muted)',
+              fontSize: '9px',
+              background: statusStyle.bg,
+              color: statusStyle.color,
+              padding: '2px 4px',
+              borderRadius: '3px',
               whiteSpace: 'nowrap',
               display: 'inline-block',
+              fontWeight: 500,
               overflow: 'hidden',
-              textOverflow: 'ellipsis'
+              textOverflow: 'ellipsis',
+              maxWidth: '56px'
             }}>
               {status}
             </span>
@@ -153,23 +179,43 @@ export default function TaskCard({
 
   if (viewMode === 'kanban') {
     return (
-      <Link href={`/task/${task.id}`} className="block">
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded p-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-          <div className="flex items-start justify-between mb-2">
-            <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded">
-              {task.category}
+      <Link href={`/task/${task.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+        <div style={{
+          background: 'var(--bg)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius)',
+          padding: '12px',
+          cursor: 'pointer',
+          transition: 'background 80ms ease',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{
+              fontSize: '10px',
+              background: statusStyle.bg,
+              color: statusStyle.color,
+              padding: '2px 6px',
+              borderRadius: '3px',
+              fontWeight: 500
+            }}>
+              {status}
             </span>
-            <span className="text-xs text-gray-400">#{task.id}</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-light)', fontFamily: 'var(--font-mono)' }}>#{task.id}</span>
           </div>
-          <p className="text-sm text-black dark:text-white mb-2">
-            {firstLine}
+          <p style={{
+            fontSize: '13px',
+            color: 'var(--text)',
+            marginBottom: '8px',
+            lineHeight: '1.4',
+            wordBreak: 'break-word'
+          }}>
+            {truncated}
           </p>
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>{createdDate.toLocaleDateString()}</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
+            <span>{createdDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
             {hasMedia && <span>{task.media_urls?.length} files</span>}
           </div>
           {isNew && (
-            <div className="w-full h-0.5 bg-black dark:bg-white mt-2"></div>
+            <div style={{ width: '100%', height: '2px', background: 'var(--primary)', marginTop: '8px', borderRadius: '1px' }} />
           )}
         </div>
       </Link>
@@ -207,7 +253,14 @@ export default function TaskCard({
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-800">
-          <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded">
+          <span style={{
+            fontSize: '11px',
+            background: statusStyle.bg,
+            color: statusStyle.color,
+            padding: '2px 6px',
+            borderRadius: '3px',
+            fontWeight: 500
+          }}>
             {status}
           </span>
           <div className="flex items-center gap-2 text-xs text-gray-500">
