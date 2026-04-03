@@ -184,13 +184,13 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
         ) : (
           // List View (default - Notion table style)
           <div className="border border-gray-200 dark:border-gray-800 rounded">
-            <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
+            <div className="bg-gray-50 dark:bg-gray-800 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
               <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-1">Status</div>
+                <div className="col-span-1 text-center">Status</div>
                 <div className="col-span-6">Task</div>
-                <div className="col-span-2">Type</div>
-                <div className="col-span-2">Created</div>
-                <div className="col-span-1">ID</div>
+                <div className="col-span-2 text-center">Type</div>
+                <div className="col-span-2 text-center">Created</div>
+                <div className="col-span-1 text-center">ID</div>
               </div>
             </div>
             <div className="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-900">

@@ -25,36 +25,36 @@ export default function TaskCard({
   if (viewMode === 'list') {
     return (
       <Link href={`/task/${task.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-800">
-        <div className="grid grid-cols-12 gap-4 items-center px-4 py-3">
-          <div className="col-span-1">
-            <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded">
+        <div className="grid grid-cols-12 gap-4 items-center px-4 py-3 min-h-[60px]">
+          <div className="col-span-1 flex justify-center">
+            <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded whitespace-nowrap">
               {status}
             </span>
           </div>
-          <div className="col-span-6">
+          <div className="col-span-6 min-w-0">
             <div className="flex items-start gap-2">
               {isNew && <div className="w-2 h-2 bg-black dark:bg-white rounded-full flex-shrink-0 mt-2"></div>}
               <div className="min-w-0 flex-1">
-                <p className="text-sm text-black dark:text-white">
+                <p className="text-sm text-black dark:text-white break-words">
                   {truncated}
                 </p>
                 {hasMedia && (
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 mt-1 block">
                     {task.media_urls?.length} files
                   </span>
                 )}
               </div>
             </div>
           </div>
-          <div className="col-span-2">
-            <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded">
+          <div className="col-span-2 flex justify-center">
+            <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded whitespace-nowrap">
               {task.category}
             </span>
           </div>
-          <div className="col-span-2 text-xs text-gray-500 dark:text-gray-400">
+          <div className="col-span-2 text-xs text-gray-500 dark:text-gray-400 text-center">
             {createdDate.toLocaleDateString()}
           </div>
-          <div className="col-span-1 text-right">
+          <div className="col-span-1 text-center">
             <span className="text-xs text-gray-400">#{task.id}</span>
           </div>
         </div>

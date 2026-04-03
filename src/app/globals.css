@@ -85,6 +85,50 @@ button:focus-visible { box-shadow: 0 0 0 2px var(--primary); border-radius: var(
 .status-pill { transition: background 80ms ease-in !important; }
 .status-pill:hover { filter: brightness(0.97); }
 
+/* Fixed Table Layout for Notion-style alignment */
+.task-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.task-table-header, .task-table-row {
+  display: grid;
+  grid-template-columns: 1fr 4fr 1fr 1fr 80px;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.task-table-cell {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.task-table-cell.center {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.task-table-cell.content {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Responsive grid adjustments */
+@media (max-width: 768px) {
+  .task-table-header, .task-table-row {
+    grid-template-columns: 80px 1fr 80px 80px 60px;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+  
+  .task-table-cell {
+    font-size: 12px;
+  }
+}
+
 /* Responsive */
 @media (min-width: 768px) {
   .mobile-filters { display: none !important; }
@@ -119,3 +163,33 @@ button:focus-visible { box-shadow: 0 0 0 2px var(--primary); border-radius: var(
 @media (max-width: 859px) {
   .detail-sidebar { border-top: 1px solid var(--border); }
 }
+
+/* Ensure proper text wrapping and spacing */
+.break-words {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.whitespace-nowrap {
+  white-space: nowrap;
+}
+
+/* Grid system fallbacks for TailwindCSS v4 */
+.grid {
+  display: grid;
+}
+
+.grid-cols-12 {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.col-span-1 { grid-column: span 1 / span 1; }
+.col-span-2 { grid-column: span 2 / span 2; }
+.col-span-6 { grid-column: span 6 / span 6; }
+
+.gap-4 { gap: 1rem; }
+
+.items-center { align-items: center; }
+
+.min-h-[60px] { min-height: 60px; }
