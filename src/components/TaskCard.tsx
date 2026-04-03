@@ -29,40 +29,42 @@ export default function TaskCard({
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'center',
-          padding: '8px 12px 8px 0',
+          padding: '8px',
           borderBottom: '1px solid var(--border-light)',
           cursor: 'pointer',
-          gap: '8px',
-          minHeight: '48px'
+          gap: '4px',
+          minHeight: '44px'
         }}>
-          {/* Status Column */}
+          {/* Status Column - Mobile optimized */}
           <div style={{ 
-            width: '80px', 
+            width: '60px', 
             flexShrink: 0,
             textAlign: 'left'
           }}>
             <span style={{
-              fontSize: '13px',
+              fontSize: '10px',
               color: 'var(--text-muted)',
               whiteSpace: 'nowrap',
-              display: 'inline-block'
+              display: 'inline-block',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
             }}>
               {status}
             </span>
           </div>
           
-          {/* Title Column */}
+          {/* Title Column - Takes most space */}
           <div style={{ 
             flex: 1, 
             minWidth: 0,
             display: 'flex',
             alignItems: 'center',
-            gap: '8px'
+            gap: '4px'
           }}>
             {isNew && (
               <div style={{ 
-                width: '6px', 
-                height: '6px', 
+                width: '4px', 
+                height: '4px', 
                 backgroundColor: 'var(--primary)', 
                 borderRadius: '50%', 
                 flexShrink: 0 
@@ -70,73 +72,78 @@ export default function TaskCard({
             )}
             <div style={{ minWidth: 0, flex: 1 }}>
               <span style={{
-                fontSize: '14px',
+                fontSize: '12px',
                 color: 'var(--text)',
-                lineHeight: '1.4',
+                lineHeight: '1.3',
                 wordBreak: 'break-word',
                 display: 'inline-block',
-                whiteSpace: 'normal'
+                whiteSpace: 'normal',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxHeight: '32px'
               }}>
                 {truncated}
               </span>
               {hasMedia && (
                 <div style={{ 
-                  fontSize: '11px', 
+                  fontSize: '9px', 
                   color: 'var(--text-light)', 
-                  marginTop: '2px' 
+                  marginTop: '1px' 
                 }}>
-                  {task.media_urls?.length} files
+                  {task.media_urls?.length}f
                 </div>
               )}
             </div>
           </div>
           
-          {/* Type Column */}
+          {/* Type Column - Condensed */}
           <div style={{ 
-            width: '70px', 
+            width: '50px', 
             flexShrink: 0,
             textAlign: 'center'
           }}>
             <span style={{
-              fontSize: '13px',
+              fontSize: '10px',
               color: 'var(--text-secondary)',
               whiteSpace: 'nowrap',
-              display: 'inline-block'
+              display: 'inline-block',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
             }}>
-              {task.category}
+              {task.category === 'Bug' ? 'Bug' : 'Feat'}
             </span>
           </div>
           
-          {/* Created Column */}
+          {/* Date Column - Very compact */}
           <div style={{ 
-            width: '80px', 
+            width: '60px', 
             flexShrink: 0,
             textAlign: 'center'
           }}>
             <span style={{
-              fontSize: '13px',
+              fontSize: '10px',
               color: 'var(--text-secondary)',
               whiteSpace: 'nowrap',
               display: 'inline-block'
             }}>
-              {createdDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+              {createdDate.getDate()}/{createdDate.getMonth() + 1}
             </span>
           </div>
           
-          {/* ID Column */}
+          {/* ID Column - Minimal */}
           <div style={{ 
-            width: '40px', 
+            width: '35px', 
             flexShrink: 0,
             textAlign: 'right'
           }}>
             <span style={{
-              fontSize: '13px',
+              fontSize: '10px',
               color: 'var(--text-light)',
               fontFamily: 'var(--font-mono)',
               whiteSpace: 'nowrap',
               display: 'inline-block'
             }}>
-              #{task.id}
+              {task.id}
             </span>
           </div>
         </div>

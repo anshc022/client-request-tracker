@@ -193,19 +193,19 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              padding: '6px 12px 6px 0',
-              fontSize: 12,
+              padding: '6px 8px',
+              fontSize: 11,
               fontWeight: 500,
               color: 'var(--text-muted)',
               borderBottom: '1px solid var(--border)',
               background: 'var(--bg-secondary)',
-              gap: 8,
+              gap: 4,
             }}>
-              <div style={{ width: 80, flexShrink: 0, textAlign: 'left' }}>Status</div>
-              <div style={{ flex: 1 }}>Title</div>
-              <div style={{ width: 70, textAlign: 'center', flexShrink: 0 }}>Type</div>
-              <div style={{ width: 80, textAlign: 'center', flexShrink: 0 }}>Created</div>
-              <div style={{ width: 40, textAlign: 'right', flexShrink: 0 }}>ID</div>
+              <div style={{ width: 60, flexShrink: 0, textAlign: 'left' }}>Status</div>
+              <div style={{ flex: 1, minWidth: 0 }}>Title</div>
+              <div style={{ width: 50, textAlign: 'center', flexShrink: 0 }}>Type</div>
+              <div style={{ width: 60, textAlign: 'center', flexShrink: 0 }}>Date</div>
+              <div style={{ width: 35, textAlign: 'right', flexShrink: 0 }}>ID</div>
             </div>
 
             {/* Table rows — exactly like detail page structure */}
