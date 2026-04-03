@@ -27,83 +27,117 @@ export default function TaskCard({
       <Link href={`/task/${task.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
         <div style={{
           display: 'flex',
+          flexDirection: 'row',
           alignItems: 'center',
           padding: '8px 12px 8px 0',
-          fontSize: 14,
-          gap: 8,
           borderBottom: '1px solid var(--border-light)',
           cursor: 'pointer',
+          gap: '8px',
+          minHeight: '48px'
         }}>
+          {/* Status Column */}
           <div style={{ 
-            width: 80, 
-            flexShrink: 0, 
-            color: 'var(--text-muted)', 
-            fontSize: 13,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
+            width: '80px', 
+            flexShrink: 0,
+            textAlign: 'left'
           }}>
-            {status}
+            <span style={{
+              fontSize: '13px',
+              color: 'var(--text-muted)',
+              whiteSpace: 'nowrap',
+              display: 'inline-block'
+            }}>
+              {status}
+            </span>
           </div>
+          
+          {/* Title Column */}
           <div style={{ 
             flex: 1, 
             minWidth: 0,
             display: 'flex',
             alignItems: 'center',
-            gap: 8
+            gap: '8px'
           }}>
-            {isNew && <div style={{ width: 6, height: 6, background: 'var(--primary)', borderRadius: 3, flexShrink: 0 }} />}
+            {isNew && (
+              <div style={{ 
+                width: '6px', 
+                height: '6px', 
+                backgroundColor: 'var(--primary)', 
+                borderRadius: '50%', 
+                flexShrink: 0 
+              }} />
+            )}
             <div style={{ minWidth: 0, flex: 1 }}>
-              <p style={{
-                fontSize: 14,
+              <span style={{
+                fontSize: '14px',
                 color: 'var(--text)',
-                margin: 0,
+                lineHeight: '1.4',
                 wordBreak: 'break-word',
-                lineHeight: 1.4,
-                display: 'block',
+                display: 'inline-block',
                 whiteSpace: 'normal'
               }}>
                 {truncated}
-              </p>
+              </span>
               {hasMedia && (
-                <span style={{ fontSize: 11, color: 'var(--text-light)', marginTop: 2, display: 'block' }}>
+                <div style={{ 
+                  fontSize: '11px', 
+                  color: 'var(--text-light)', 
+                  marginTop: '2px' 
+                }}>
                   {task.media_urls?.length} files
-                </span>
+                </div>
               )}
             </div>
           </div>
+          
+          {/* Type Column */}
           <div style={{ 
-            width: 70, 
-            textAlign: 'center', 
-            flexShrink: 0, 
-            fontSize: 13, 
-            color: 'var(--text-secondary)',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
+            width: '70px', 
+            flexShrink: 0,
+            textAlign: 'center'
           }}>
-            {task.category}
+            <span style={{
+              fontSize: '13px',
+              color: 'var(--text-secondary)',
+              whiteSpace: 'nowrap',
+              display: 'inline-block'
+            }}>
+              {task.category}
+            </span>
           </div>
+          
+          {/* Created Column */}
           <div style={{ 
-            width: 80, 
-            textAlign: 'center', 
-            flexShrink: 0, 
-            fontSize: 13, 
-            color: 'var(--text-secondary)',
-            whiteSpace: 'nowrap'
+            width: '80px', 
+            flexShrink: 0,
+            textAlign: 'center'
           }}>
-            {createdDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+            <span style={{
+              fontSize: '13px',
+              color: 'var(--text-secondary)',
+              whiteSpace: 'nowrap',
+              display: 'inline-block'
+            }}>
+              {createdDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+            </span>
           </div>
+          
+          {/* ID Column */}
           <div style={{ 
-            width: 40, 
-            textAlign: 'right', 
-            flexShrink: 0, 
-            fontSize: 13, 
-            color: 'var(--text-light)', 
-            fontFamily: 'var(--font-mono)',
-            whiteSpace: 'nowrap'
+            width: '40px', 
+            flexShrink: 0,
+            textAlign: 'right'
           }}>
-            #{task.id}
+            <span style={{
+              fontSize: '13px',
+              color: 'var(--text-light)',
+              fontFamily: 'var(--font-mono)',
+              whiteSpace: 'nowrap',
+              display: 'inline-block'
+            }}>
+              #{task.id}
+            </span>
           </div>
         </div>
       </Link>

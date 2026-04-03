@@ -67,11 +67,29 @@ button:focus-visible { box-shadow: 0 0 0 2px var(--primary); border-radius: var(
   from { opacity: 0; } to { opacity: 1; }
 }
 
+/* Force horizontal text layout for all elements */
+* {
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  direction: ltr !important;
+}
+
+/* Override any vertical text styles */
+div, span, p, a, button {
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  direction: ltr !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+}
+
 /* Notion-style hover row */
 .notion-row {
   cursor: pointer;
   transition: background 80ms ease-in !important;
   border-radius: var(--radius);
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
 }
 .notion-row:hover { background: var(--bg-hover); }
 .notion-row:active { background: var(--bg-active); }
