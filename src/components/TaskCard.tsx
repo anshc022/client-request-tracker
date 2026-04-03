@@ -25,42 +25,84 @@ export default function TaskCard({
   if (viewMode === 'list') {
     return (
       <Link href={`/task/${task.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-        <div className="notion-row" style={{
+        <div style={{
           display: 'flex',
           alignItems: 'center',
           padding: '8px 12px 8px 0',
           fontSize: 14,
           gap: 8,
+          borderBottom: '1px solid var(--border-light)',
+          cursor: 'pointer',
         }}>
-          <div style={{ width: 80, flexShrink: 0, color: 'var(--text-muted)', fontSize: 13 }}>
+          <div style={{ 
+            width: 80, 
+            flexShrink: 0, 
+            color: 'var(--text-muted)', 
+            fontSize: 13,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+          }}>
             {status}
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {isNew && <div style={{ width: 6, height: 6, background: 'var(--primary)', borderRadius: 3, flexShrink: 0 }} />}
+          <div style={{ 
+            flex: 1, 
+            minWidth: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8
+          }}>
+            {isNew && <div style={{ width: 6, height: 6, background: 'var(--primary)', borderRadius: 3, flexShrink: 0 }} />}
+            <div style={{ minWidth: 0, flex: 1 }}>
               <p style={{
                 fontSize: 14,
                 color: 'var(--text)',
                 margin: 0,
                 wordBreak: 'break-word',
                 lineHeight: 1.4,
+                display: 'block',
+                whiteSpace: 'normal'
               }}>
                 {truncated}
               </p>
+              {hasMedia && (
+                <span style={{ fontSize: 11, color: 'var(--text-light)', marginTop: 2, display: 'block' }}>
+                  {task.media_urls?.length} files
+                </span>
+              )}
             </div>
-            {hasMedia && (
-              <span style={{ fontSize: 11, color: 'var(--text-light)', marginTop: 2, display: 'block' }}>
-                {task.media_urls?.length} files
-              </span>
-            )}
           </div>
-          <div style={{ width: 70, textAlign: 'center', flexShrink: 0, fontSize: 13, color: 'var(--text-secondary)' }}>
+          <div style={{ 
+            width: 70, 
+            textAlign: 'center', 
+            flexShrink: 0, 
+            fontSize: 13, 
+            color: 'var(--text-secondary)',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+          }}>
             {task.category}
           </div>
-          <div style={{ width: 80, textAlign: 'center', flexShrink: 0, fontSize: 13, color: 'var(--text-secondary)' }}>
+          <div style={{ 
+            width: 80, 
+            textAlign: 'center', 
+            flexShrink: 0, 
+            fontSize: 13, 
+            color: 'var(--text-secondary)',
+            whiteSpace: 'nowrap'
+          }}>
             {createdDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
           </div>
-          <div style={{ width: 40, textAlign: 'right', flexShrink: 0, fontSize: 13, color: 'var(--text-light)', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ 
+            width: 40, 
+            textAlign: 'right', 
+            flexShrink: 0, 
+            fontSize: 13, 
+            color: 'var(--text-light)', 
+            fontFamily: 'var(--font-mono)',
+            whiteSpace: 'nowrap'
+          }}>
             #{task.id}
           </div>
         </div>
