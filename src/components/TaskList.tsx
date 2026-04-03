@@ -5,18 +5,20 @@ import TaskCard from './TaskCard';
 import { ClientRequest } from '@/app/actions';
 
 const statusFilters = [
-  { id: 'all', label: 'All' },
-  { id: 'todo', label: 'To Do' },
-  { id: 'in-progress', label: 'In Progress' },
-  { id: 'done', label: 'Done' },
+  { id: 'all', label: 'All', emoji: '📋' },
+  { id: 'todo', label: 'To Do', emoji: '⏳' },
+  { id: 'in-progress', label: 'In Progress', emoji: '⚙️' },
+  { id: 'urgent', label: 'Urgent', emoji: '🚨' },
+  { id: 'done', label: 'Done', emoji: '✅' },
 ];
 
 export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'grid' | 'kanban'>('grid');
   const [lastViewed, setLastViewed] = useState<Record<number, number>>({});
+  const [sortBy, setSortBy] = useState<'recent' | 'priority' | 'category'>('recent');
 
   useEffect(() => {
     try {
@@ -29,6 +31,7 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
     all: tasks.length,
     todo: tasks.filter(t => t.status === 'Pending' || t.status === 'To Do').length,
     'in-progress': tasks.filter(t => t.status === 'In Progress').length,
+    urgent: tasks.filter(t => t.status === 'Urgent').length,
     done: tasks.filter(t => t.status === 'Done').length,
   }), [tasks]);
 
@@ -36,6 +39,7 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
     let data = [...tasks];
     if (statusFilter === 'todo') data = data.filter(t => t.status === 'Pending' || t.status === 'To Do');
     else if (statusFilter === 'in-progress') data = data.filter(t => t.status === 'In Progress');
+    else if (statusFilter === 'urgent') data = data.filter(t => t.status === 'Urgent');
     else if (statusFilter === 'done') data = data.filter(t => t.status === 'Done');
     if (categoryFilter === 'Bugs') data = data.filter(t => t.category === 'Bug');
     if (categoryFilter === 'Features') data = data.filter(t => t.category === 'Feature');
@@ -47,233 +51,230 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
         t.category.toLowerCase().includes(q)
       );
     }
+    
+    // Enhanced sorting
     return data.sort((a, b) => {
+      if (sortBy === 'priority') {
+        const priority = { 'Urgent': 3, 'In Progress': 2, 'Pending': 1, 'Done': 0 };
+        return (priority[b.status as keyof typeof priority] || 0) - (priority[a.status as keyof typeof priority] || 0);
+      }
+      if (sortBy === 'category') {
+        return a.category.localeCompare(b.category);
+      }
+      // Default: recent
       if (a.status === 'Done' && b.status !== 'Done') return 1;
       if (a.status !== 'Done' && b.status === 'Done') return -1;
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
-  }, [tasks, statusFilter, categoryFilter, searchQuery]);
+  }, [tasks, statusFilter, categoryFilter, searchQuery, sortBy]);
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto' }}>
-      {/* Page title area — Notion style */}
-      <div style={{ padding: '40px 48px 0' }}>
-        <div style={{ fontSize: 40, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>
-          📋 Task Board
-        </div>
-        <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 24 }}>
-          Track client requests, bugs, and feature requests
-        </div>
-      </div>
-
-      {/* Filter toolbar — Notion-style tabs + search */}
-      <div style={{
-        padding: '0 48px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2,
-        borderBottom: '1px solid var(--border)',
-        flexWrap: 'wrap',
-      }}>
-        {/* View tabs */}
-        <div style={{ display: 'flex', gap: 0, marginRight: 'auto' }}>
-          {statusFilters.map(f => {
-            const isActive = statusFilter === f.id;
-            const count = statusCounts[f.id as keyof typeof statusCounts];
-            return (
-              <button
-                key={f.id}
-                onClick={() => setStatusFilter(f.id)}
-                style={{
-                  padding: '8px 12px',
-                  fontSize: 13,
-                  fontWeight: isActive ? 600 : 400,
-                  color: isActive ? 'var(--text)' : 'var(--text-muted)',
-                  background: 'none',
-                  border: 'none',
-                  borderBottom: isActive ? '2px solid var(--text)' : '2px solid transparent',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  marginBottom: -1,
-                  transition: 'color 80ms ease',
-                }}
-              >
-                {f.label}
-                <span style={{
-                  fontSize: 11,
-                  color: 'var(--text-muted)',
-                  background: isActive ? 'var(--bg-hover)' : 'transparent',
-                  padding: '0 5px',
-                  borderRadius: 4,
-                }}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Category filters */}
-        <div style={{ display: 'flex', gap: 4, padding: '6px 0' }}>
-          {['All', 'Bugs', 'Features'].map(f => {
-            const isActive = categoryFilter === f;
-            return (
-              <button
-                key={f}
-                onClick={() => setCategoryFilter(f)}
-                style={{
-                  padding: '3px 8px',
-                  fontSize: 12,
-                  fontWeight: 500,
-                  borderRadius: 4,
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: isActive ? 'var(--primary-dark)' : 'var(--text-muted)',
-                  background: isActive ? 'var(--primary-subtle)' : 'transparent',
-                  transition: 'all 80ms ease',
-                }}
-              >
-                {f}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Search */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4,
-          padding: '4px 8px',
-          borderRadius: 4,
-          border: '1px solid transparent',
-          marginLeft: 8,
-        }}>
-          <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>🔍</span>
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            style={{
-              border: 'none',
-              fontSize: 13,
-              color: 'var(--text)',
-              background: 'transparent',
-              width: 120,
-            }}
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery('')} style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 12, color: 'var(--text-muted)', padding: '0 2px',
-            }}>✕</button>
-          )}
-        </div>
-
-        {/* View Toggle */}
-        <div style={{ display: 'flex', gap: 4, marginLeft: 8 }}>
-          <button
-            onClick={() => setViewMode('list')}
-            style={{
-              padding: '4px 6px',
-              border: 'none',
-              background: viewMode === 'list' ? 'var(--bg-active)' : 'transparent',
-              color: viewMode === 'list' ? 'var(--text)' : 'var(--text-muted)',
-              borderRadius: 4,
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-            title="List View"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-          </button>
-          <button
-            onClick={() => setViewMode('grid')}
-            style={{
-              padding: '4px 6px',
-              border: 'none',
-              background: viewMode === 'grid' ? 'var(--bg-active)' : 'transparent',
-              color: viewMode === 'grid' ? 'var(--text)' : 'var(--text-muted)',
-              borderRadius: 4,
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-            title="Grid View"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-          </button>
+    <div className="max-w-7xl mx-auto px-4 md:px-6">
+      {/* Modern header section */}
+      <div className="py-8 md:py-12">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-900 via-blue-800 to-slate-900 dark:from-white dark:via-blue-200 dark:to-white bg-clip-text text-transparent mb-4">
+            Task Management Center
+          </h1>
+          <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+            Track client requests, bugs, and feature requests with modern workflow tools
+          </p>
         </div>
       </div>
 
-      {/* Table header (List view only) */}
-      {viewMode === 'list' && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: '6px 12px 6px 48px',
-          fontSize: 12,
-          fontWeight: 500,
-          color: 'var(--text-muted)',
-          borderBottom: '1px solid var(--border)',
-          background: 'var(--bg-secondary)',
-          gap: 8,
-        }}>
-          <div style={{ width: 80, flexShrink: 0 }}>Status</div>
-          <div style={{ flex: 1 }}>Title</div>
-          <div style={{ width: 70, textAlign: 'center', flexShrink: 0 }}>Type</div>
-          <div style={{ width: 40, textAlign: 'right', flexShrink: 0 }}>ID</div>
-        </div>
-      )}
+      {/* Enhanced filter toolbar */}
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 mb-8">
+        <div className="p-4 md:p-6">
+          {/* Status filter tabs */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {statusFilters.map(f => {
+              const isActive = statusFilter === f.id;
+              const count = statusCounts[f.id as keyof typeof statusCounts];
+              return (
+                <button
+                  key={f.id}
+                  onClick={() => setStatusFilter(f.id)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all transform hover:scale-105 ${
+                    isActive
+                      ? 'bg-blue-500 text-white shadow-lg'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  <span>{f.emoji}</span>
+                  {f.label}
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    isActive ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700'
+                  }`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
-      {/* Task rows */}
-      <div style={{
-        padding: viewMode === 'grid' ? '16px 36px' : '0 36px',
-        display: viewMode === 'grid' ? 'grid' : 'block',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        gap: viewMode === 'grid' ? '16px' : '0',
-      }}>
-        {filtered.length === 0 && (
-          <div style={{
-            padding: '48px 20px',
-            textAlign: 'center',
-            color: 'var(--text-muted)',
-            fontSize: 14,
-          }}>
-            {searchQuery ? 'No tasks match your search.' : 'No tasks in this view.'}
+          {/* Search and filters row */}
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            {/* Search bar */}
+            <div className="relative flex-1 max-w-md">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Search tasks..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="block w-full pl-10 pr-3 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Category filters */}
+            <div className="flex gap-2">
+              {['All', 'Bugs', 'Features'].map(f => (
+                <button
+                  key={f}
+                  onClick={() => setCategoryFilter(f)}
+                  className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                    categoryFilter === f
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+
+            {/* View mode toggles */}
+            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+              {[
+                { mode: 'grid', icon: '⊞', title: 'Grid View' },
+                { mode: 'list', icon: '☰', title: 'List View' },
+                { mode: 'kanban', icon: '⚏', title: 'Kanban View' }
+              ].map(({ mode, icon, title }) => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode as any)}
+                  title={title}
+                  className={`p-2 text-sm rounded transition-colors ${
+                    viewMode === mode
+                      ? 'bg-white dark:bg-slate-700 shadow text-blue-600 dark:text-blue-400'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
+
+            {/* Sort dropdown */}
+            <select
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value as any)}
+              className="px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="recent">Recent First</option>
+              <option value="priority">By Priority</option>
+              <option value="category">By Category</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      {/* Task display area */}
+      <div className="mb-8">
+        {filtered.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">📝</div>
+            <h3 className="text-xl font-medium text-slate-900 dark:text-white mb-2">
+              {searchQuery ? 'No matching tasks' : 'No tasks found'}
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400">
+              {searchQuery ? 'Try adjusting your search criteria.' : 'Tasks will appear here when created.'}
+            </p>
+          </div>
+        ) : viewMode === 'kanban' ? (
+          // Kanban Board View
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {statusFilters.slice(1).map(status => {
+              const statusTasks = filtered.filter(t => {
+                if (status.id === 'todo') return t.status === 'Pending' || t.status === 'To Do';
+                if (status.id === 'in-progress') return t.status === 'In Progress';
+                if (status.id === 'urgent') return t.status === 'Urgent';
+                if (status.id === 'done') return t.status === 'Done';
+                return false;
+              });
+              
+              return (
+                <div key={status.id} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-lg">{status.emoji}</span>
+                    <h3 className="font-medium text-slate-900 dark:text-white">{status.label}</h3>
+                    <span className="px-2 py-1 text-xs bg-slate-200 dark:bg-slate-700 rounded-full">
+                      {statusTasks.length}
+                    </span>
+                  </div>
+                  <div className="space-y-3">
+                    {statusTasks.map(task => (
+                      <TaskCard key={task.id} task={task} lastViewed={lastViewed[task.id]} viewMode="kanban" />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : viewMode === 'grid' ? (
+          // Grid View
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map(task => (
+              <TaskCard key={task.id} task={task} lastViewed={lastViewed[task.id]} viewMode="grid" />
+            ))}
+          </div>
+        ) : (
+          // List View
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="px-6 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+              <div className="grid grid-cols-12 gap-4 text-sm font-medium text-slate-600 dark:text-slate-400">
+                <div className="col-span-1">Status</div>
+                <div className="col-span-6">Task</div>
+                <div className="col-span-2">Category</div>
+                <div className="col-span-2">Created</div>
+                <div className="col-span-1">ID</div>
+              </div>
+            </div>
+            <div className="divide-y divide-slate-200 dark:divide-slate-700">
+              {filtered.map(task => (
+                <TaskCard key={task.id} task={task} lastViewed={lastViewed[task.id]} viewMode="list" />
+              ))}
+            </div>
           </div>
         )}
-        {filtered.map(t => (
-          <TaskCard key={t.id} task={t} lastViewed={lastViewed[t.id]} viewMode={viewMode} />
-        ))}
       </div>
 
-      {/* Result count */}
+      {/* Results summary */}
       {filtered.length > 0 && (
-        <div style={{
-          padding: '8px 48px',
-          fontSize: 12,
-          color: 'var(--text-light)',
-          borderTop: '1px solid var(--border-light)',
-        }}>
-          {filtered.length} {filtered.length === 1 ? 'result' : 'results'}
-          {(statusFilter !== 'all' || categoryFilter !== 'All') && (
-            <button
-              onClick={() => { setStatusFilter('all'); setCategoryFilter('All'); }}
-              style={{
-                marginLeft: 8,
-                color: 'var(--primary)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: 12,
-              }}
-            >
-              Clear filters
-            </button>
-          )}
+        <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 rounded-lg px-4 py-3 border border-slate-200 dark:border-slate-700">
+          <span>
+            Showing {filtered.length} of {tasks.length} tasks
+            {(statusFilter !== 'all' || categoryFilter !== 'All' || searchQuery) && (
+              <button
+                onClick={() => { 
+                  setStatusFilter('all'); 
+                  setCategoryFilter('All'); 
+                  setSearchQuery(''); 
+                }}
+                className="ml-2 text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                Clear all filters
+              </button>
+            )}
+          </span>
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-slate-500">
+              Last updated: {new Date().toLocaleTimeString()}
+            </span>
+          </div>
         </div>
       )}
     </div>

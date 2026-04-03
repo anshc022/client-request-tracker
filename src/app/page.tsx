@@ -8,50 +8,37 @@ export const revalidate = 0;
 export default async function HomePage() {
   const tasks = await getRequests();
   const openCount = tasks.filter(t => t.status !== 'Done').length;
+  const urgentCount = tasks.filter(t => t.status === 'Urgent').length;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <header style={{
-        height: 45,
-        padding: '0 12px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderBottom: '1px solid var(--border)',
-        background: 'var(--bg)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 30,
-        fontSize: 14,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 18 }}>📋</span>
-          <span style={{ fontWeight: 600, color: 'var(--text)' }}>Ping Tracker</span>
-          <span style={{ color: 'var(--text-muted)', fontSize: 12, marginLeft: 4 }}>{tasks.length} tasks</span>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+      <header className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-slate-200/70 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm sticky top-0 z-30 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+            T
+          </div>
+          <div className="flex flex-col">
+            <span className="font-bold text-lg text-slate-800 dark:text-white">Task Tracker Pro</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">{tasks.length} total tasks</span>
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {openCount > 0 && (
-            <span style={{
-              fontSize: 12, fontWeight: 500,
-              color: 'var(--tag-red-text)',
-              background: 'var(--tag-red)',
-              padding: '1px 8px',
-              borderRadius: 4,
-            }}>
-              {openCount} open
+        <div className="flex items-center gap-3">
+          {urgentCount > 0 && (
+            <span className="px-3 py-1 text-xs font-semibold text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400 rounded-full animate-pulse">
+              🚨 {urgentCount} urgent
             </span>
           )}
-          <Link href="/stats" style={{
-            color: 'var(--text-secondary)',
-            textDecoration: 'none',
-            fontSize: 13,
-            padding: '4px 8px',
-            borderRadius: 4,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-          }}>
-            📊 Stats
+          {openCount > 0 && (
+            <span className="px-3 py-1 text-xs font-medium text-amber-700 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 rounded-full">
+              ⏳ {openCount} open
+            </span>
+          )}
+          <Link 
+            href="/stats" 
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-colors"
+          >
+            <span className="text-base">📊</span>
+            Stats
           </Link>
         </div>
       </header>
