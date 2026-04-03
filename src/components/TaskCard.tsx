@@ -26,67 +26,42 @@ export default function TaskCard({
     return (
       <Link href={`/task/${task.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
         <div className="notion-row" style={{
-          padding: '12px 48px',
-          borderBottom: '1px solid var(--border-light)',
-          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '8px 12px 8px 0',
+          fontSize: 14,
+          gap: 8,
         }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 16,
-            minHeight: 40,
-          }}>
-            <div style={{ width: 80, textAlign: 'center', display: 'flex', justifyContent: 'center' }}>
-              <span style={{
-                background: 'var(--tag-gray)',
-                color: 'var(--tag-gray-text)',
-                padding: '2px 8px',
-                borderRadius: 'var(--radius)',
-                fontSize: 11,
-                fontWeight: 500,
-                whiteSpace: 'nowrap',
-              }}>
-                {status}
-              </span>
-            </div>
-            <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 80, flexShrink: 0, color: 'var(--text-muted)', fontSize: 13 }}>
+            {status}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               {isNew && <div style={{ width: 6, height: 6, background: 'var(--primary)', borderRadius: 3, flexShrink: 0 }} />}
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <p style={{
-                  fontSize: 14,
-                  color: 'var(--text)',
-                  wordBreak: 'break-word',
-                  lineHeight: '1.4',
-                  margin: 0,
-                }}>
-                  {truncated}
-                </p>
-                {hasMedia && (
-                  <span style={{ fontSize: 11, color: 'var(--text-light)', marginTop: 2, display: 'block' }}>
-                    {task.media_urls?.length} files
-                  </span>
-                )}
-              </div>
-            </div>
-            <div style={{ width: 80, textAlign: 'center', display: 'flex', justifyContent: 'center' }}>
-              <span style={{
-                background: task.category === 'Bug' ? 'var(--tag-red)' : 'var(--tag-blue)',
-                color: task.category === 'Bug' ? 'var(--tag-red-text)' : 'var(--tag-blue-text)',
-                padding: '2px 8px',
-                borderRadius: 'var(--radius)',
-                fontSize: 11,
-                fontWeight: 500,
-                whiteSpace: 'nowrap',
+              <p style={{
+                fontSize: 14,
+                color: 'var(--text)',
+                margin: 0,
+                wordBreak: 'break-word',
+                lineHeight: 1.4,
               }}>
-                {task.category}
+                {truncated}
+              </p>
+            </div>
+            {hasMedia && (
+              <span style={{ fontSize: 11, color: 'var(--text-light)', marginTop: 2, display: 'block' }}>
+                {task.media_urls?.length} files
               </span>
-            </div>
-            <div style={{ width: 90, textAlign: 'center', fontSize: 12, color: 'var(--text-muted)' }}>
-              {createdDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-            </div>
-            <div style={{ width: 60, textAlign: 'center', fontSize: 12, color: 'var(--text-light)', fontFamily: 'var(--font-mono)' }}>
-              #{task.id}
-            </div>
+            )}
+          </div>
+          <div style={{ width: 70, textAlign: 'center', flexShrink: 0, fontSize: 13, color: 'var(--text-secondary)' }}>
+            {task.category}
+          </div>
+          <div style={{ width: 80, textAlign: 'center', flexShrink: 0, fontSize: 13, color: 'var(--text-secondary)' }}>
+            {createdDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+          </div>
+          <div style={{ width: 40, textAlign: 'right', flexShrink: 0, fontSize: 13, color: 'var(--text-light)', fontFamily: 'var(--font-mono)' }}>
+            #{task.id}
           </div>
         </div>
       </Link>

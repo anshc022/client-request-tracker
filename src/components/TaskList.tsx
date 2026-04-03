@@ -72,7 +72,7 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
         </div>
 
         {/* Filter tabs - Notion style */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginBottom: 24, borderBottom: '1px solid var(--border)', paddingBottom: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginBottom: 24 }}>
           {statusFilters.map(f => {
             const isActive = statusFilter === f.id;
             const count = statusCounts[f.id as keyof typeof statusCounts];
@@ -81,16 +81,15 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
                 key={f.id}
                 onClick={() => setStatusFilter(f.id)}
                 style={{
-                  padding: '4px 8px',
+                  padding: '8px 12px',
                   fontSize: 13,
                   fontWeight: isActive ? 600 : 400,
                   color: isActive ? 'var(--text)' : 'var(--text-muted)',
-                  background: isActive ? 'var(--bg-hover)' : 'transparent',
+                  background: 'none',
                   border: 'none',
-                  borderRadius: 'var(--radius)',
-                  cursor: 'pointer',
                   borderBottom: isActive ? '2px solid var(--text)' : '2px solid transparent',
-                  marginBottom: -2,
+                  cursor: 'pointer',
+                  marginBottom: -1,
                   transition: 'color 80ms ease',
                   display: 'flex',
                   alignItems: 'center',
@@ -101,9 +100,9 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
                 <span style={{
                   fontSize: 11,
                   color: 'var(--text-muted)',
-                  background: isActive ? 'var(--bg-active)' : 'transparent',
-                  padding: '0 4px',
-                  borderRadius: 'var(--radius)',
+                  background: isActive ? 'var(--bg-hover)' : 'transparent',
+                  padding: '0 5px',
+                  borderRadius: 4,
                 }}>
                   {count}
                 </span>
@@ -113,62 +112,59 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
         </div>
 
         {/* Simple search and controls */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            style={{
+              padding: '4px 8px',
+              border: '1px solid transparent',
+              borderRadius: 4,
+              background: 'transparent',
+              color: 'var(--text)',
+              fontSize: 13,
+              width: 120,
+            }}
+          />
+          
+          {['All', 'Bugs', 'Features'].map(f => (
+            <button
+              key={f}
+              onClick={() => setCategoryFilter(f)}
               style={{
-                padding: '6px 8px',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius)',
-                background: 'var(--bg)',
-                color: 'var(--text)',
-                fontSize: 14,
-                minWidth: 120,
+                padding: '3px 8px',
+                fontSize: 12,
+                fontWeight: 500,
+                borderRadius: 4,
+                border: 'none',
+                cursor: 'pointer',
+                color: categoryFilter === f ? 'var(--primary-dark)' : 'var(--text-muted)',
+                background: categoryFilter === f ? 'var(--primary-subtle)' : 'transparent',
+                transition: 'all 80ms ease',
               }}
-            />
-            
-            {['All', 'Bugs', 'Features'].map(f => (
-              <button
-                key={f}
-                onClick={() => setCategoryFilter(f)}
-                style={{
-                  padding: '2px 6px',
-                  fontSize: 12,
-                  borderRadius: 'var(--radius)',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: categoryFilter === f ? 'var(--text)' : 'var(--text-muted)',
-                  background: categoryFilter === f ? 'var(--bg-hover)' : 'transparent',
-                  fontWeight: categoryFilter === f ? 500 : 400,
-                }}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
+            >
+              {f}
+            </button>
+          ))}
 
-          <div style={{ display: 'flex', gap: 2 }}>
+          <div style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
             {[
               { mode: 'list', label: 'List' },
-              { mode: 'grid', label: 'Grid' },
-              { mode: 'kanban', label: 'Board' }
+              { mode: 'grid', label: 'Grid' }
             ].map(({ mode, label }) => (
               <button
                 key={mode}
                 onClick={() => setViewMode(mode as any)}
                 style={{
-                  padding: '4px 8px',
-                  fontSize: 12,
-                  borderRadius: 'var(--radius)',
+                  padding: '4px 6px',
                   border: 'none',
-                  cursor: 'pointer',
+                  background: viewMode === mode ? 'var(--bg-active)' : 'transparent',
                   color: viewMode === mode ? 'var(--text)' : 'var(--text-muted)',
-                  background: viewMode === mode ? 'var(--bg-hover)' : 'transparent',
-                  fontWeight: viewMode === mode ? 500 : 400,
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  fontSize: 12,
                 }}
               >
                 {label}
@@ -178,119 +174,72 @@ export default function TaskList({ tasks }: { tasks: ClientRequest[] }) {
         </div>
       </div>
       {/* Task display */}
-      <div style={{ padding: '0 48px 48px' }}>
+      <div style={{ padding: '0 48px 48px', maxWidth: 720 }}>
         {filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-muted)', fontSize: 14 }}>
             {searchQuery ? 'No matching tasks.' : 'No tasks in this view.'}
           </div>
-        ) : viewMode === 'kanban' ? (
-          // Kanban Board
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24 }}>
-            {statusFilters.slice(1).map(status => {
-              const statusTasks = filtered.filter(t => {
-                if (status.id === 'todo') return t.status === 'Pending' || t.status === 'To Do';
-                if (status.id === 'in-progress') return t.status === 'In Progress';
-                if (status.id === 'urgent') return t.status === 'Urgent';
-                if (status.id === 'done') return t.status === 'Done';
-                return false;
-              });
-              
-              return (
-                <div key={status.id} style={{ background: 'var(--bg-secondary)', borderRadius: 'var(--radius)', padding: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                    <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0 }}>{status.label}</h3>
-                    <span style={{
-                      fontSize: 11,
-                      color: 'var(--text-muted)',
-                      background: 'var(--bg-hover)',
-                      padding: '2px 6px',
-                      borderRadius: 'var(--radius)',
-                    }}>
-                      {statusTasks.length}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {statusTasks.map(task => (
-                      <TaskCard key={task.id} task={task} lastViewed={lastViewed[task.id]} viewMode="kanban" />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         ) : viewMode === 'grid' ? (
           // Grid View
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
             {filtered.map(task => (
               <TaskCard key={task.id} task={task} lastViewed={lastViewed[task.id]} viewMode="grid" />
             ))}
           </div>
         ) : (
-          // List View (default - Notion table style) 
-          <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden', background: 'var(--bg)' }}>
+          // List View — Table style like detail page
+          <div>
+            {/* Table header */}
             <div style={{
-              background: 'var(--bg-secondary)',
-              padding: '12px 48px',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '6px 12px 6px 0',
               fontSize: 12,
               fontWeight: 500,
               color: 'var(--text-muted)',
               borderBottom: '1px solid var(--border)',
+              background: 'var(--bg-secondary)',
+              gap: 8,
             }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 16,
-              }}>
-                <div style={{ width: 80, textAlign: 'center' }}>Status</div>
-                <div style={{ flex: 1, minWidth: 0 }}>Task</div>
-                <div style={{ width: 80, textAlign: 'center' }}>Type</div>
-                <div style={{ width: 90, textAlign: 'center' }}>Created</div>
-                <div style={{ width: 60, textAlign: 'center' }}>ID</div>
-              </div>
+              <div style={{ width: 80, flexShrink: 0, textAlign: 'left' }}>Status</div>
+              <div style={{ flex: 1 }}>Title</div>
+              <div style={{ width: 70, textAlign: 'center', flexShrink: 0 }}>Type</div>
+              <div style={{ width: 80, textAlign: 'center', flexShrink: 0 }}>Created</div>
+              <div style={{ width: 40, textAlign: 'right', flexShrink: 0 }}>ID</div>
             </div>
-            <div style={{ background: 'var(--bg)' }}>
-              {filtered.map(task => (
-                <TaskCard key={task.id} task={task} lastViewed={lastViewed[task.id]} viewMode="list" />
-              ))}
-            </div>
+
+            {/* Table rows — exactly like detail page structure */}
+            {filtered.map(task => (
+              <TaskCard key={task.id} task={task} lastViewed={lastViewed[task.id]} viewMode="list" />
+            ))}
           </div>
         )}
 
         {/* Results count */}
         {filtered.length > 0 && (
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginTop: 24,
-            paddingTop: 16,
-            borderTop: '1px solid var(--border)',
+            padding: '8px 0',
             fontSize: 12,
-            color: 'var(--text-muted)',
+            color: 'var(--text-light)',
+            borderTop: '1px solid var(--border-light)',
+            marginTop: 16,
           }}>
-            <span>
-              {filtered.length} of {tasks.length}
-              {(statusFilter !== 'all' || categoryFilter !== 'All' || searchQuery) && (
-                <button
-                  onClick={() => { 
-                    setStatusFilter('all'); 
-                    setCategoryFilter('All'); 
-                    setSearchQuery(''); 
-                  }}
-                  style={{
-                    marginLeft: 8,
-                    color: 'var(--text)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: 12,
-                    textDecoration: 'underline',
-                  }}
-                >
-                  Clear filters
-                </button>
-              )}
-            </span>
+            {filtered.length} {filtered.length === 1 ? 'result' : 'results'}
+            {(statusFilter !== 'all' || categoryFilter !== 'All') && (
+              <button
+                onClick={() => { setStatusFilter('all'); setCategoryFilter('All'); }}
+                style={{
+                  marginLeft: 8,
+                  color: 'var(--primary)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 12,
+                }}
+              >
+                Clear filters
+              </button>
+            )}
           </div>
         )}
       </div>
