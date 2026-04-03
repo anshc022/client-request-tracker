@@ -224,48 +224,77 @@ export default function TaskCard({
 
   // Grid view (default)
   return (
-    <Link href={`/task/${task.id}`} className="block">
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors h-full flex flex-col">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded">
-              {task.category}
-            </span>
-            {isNew && (
-              <div className="w-2 h-2 bg-black dark:bg-white rounded-full"></div>
-            )}
-          </div>
-          <span className="text-xs text-gray-400">#{task.id}</span>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 mb-3">
-          <h3 className="text-sm font-medium text-black dark:text-white mb-2">
-            {firstLine}
-          </h3>
-          {task.content.split('\n').length > 1 && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {task.content.split('\n').slice(1, 2).join(' ').substring(0, 80)}...
-            </p>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-800">
+    <Link href={`/task/${task.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+      <div style={{
+        background: 'var(--bg)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius)',
+        padding: '16px',
+        cursor: 'pointer',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'background 80ms ease',
+        minHeight: '180px'
+      }}>
+        {/* Header with status and ID */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
           <span style={{
             fontSize: '11px',
             background: statusStyle.bg,
             color: statusStyle.color,
-            padding: '2px 6px',
-            borderRadius: '3px',
+            padding: '3px 8px',
+            borderRadius: '4px',
             fontWeight: 500
           }}>
             {status}
           </span>
-          <div className="flex items-center gap-2 text-xs text-gray-500">
+          <span style={{ fontSize: '11px', color: 'var(--text-light)', fontFamily: 'var(--font-mono)' }}>#{task.id}</span>
+        </div>
+
+        {/* Content */}
+        <div style={{ flex: 1, marginBottom: '12px' }}>
+          <p style={{
+            fontSize: '14px',
+            color: 'var(--text)',
+            lineHeight: '1.4',
+            wordBreak: 'break-word',
+            margin: 0,
+            display: '-webkit-box',
+            WebkitLineClamp: 4,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden'
+          }}>
+            {task.content}
+          </p>
+        </div>
+
+        {/* Footer with category, date and files */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          paddingTop: '12px',
+          borderTop: '1px solid var(--border-light)',
+          fontSize: '11px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{
+              background: task.category === 'Bug' ? 'var(--tag-red)' : 'var(--tag-blue)',
+              color: task.category === 'Bug' ? 'var(--tag-red-text)' : 'var(--tag-blue-text)',
+              padding: '2px 6px',
+              borderRadius: '3px',
+              fontWeight: 500
+            }}>
+              {task.category}
+            </span>
+            {isNew && (
+              <div style={{ width: '6px', height: '6px', background: 'var(--primary)', borderRadius: '50%' }} />
+            )}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
             {hasMedia && <span>{task.media_urls?.length} files</span>}
-            <span>{createdDate.toLocaleDateString()}</span>
+            <span>{createdDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
           </div>
         </div>
       </div>
